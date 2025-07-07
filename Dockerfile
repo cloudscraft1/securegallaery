@@ -82,8 +82,8 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 RUN adduser -D -u 10001 -s /bin/sh appuser
 
 # Create necessary directories and set permissions for non-root user
-RUN mkdir -p /app/backend/images/gallery /var/log/nginx /var/lib/nginx /run/nginx /var/cache/nginx
-RUN chown -R appuser:appuser /app /var/log/nginx /var/lib/nginx /run/nginx /var/cache/nginx
+RUN mkdir -p /app/backend/images/gallery /var/log/nginx /var/lib/nginx /run/nginx /var/cache/nginx /var/log/supervisor
+RUN chown -R appuser:appuser /app /var/log/nginx /var/lib/nginx /run/nginx /var/cache/nginx /var/log/supervisor
 
 # Expose non-privileged port for choreo.dev
 EXPOSE 8080
@@ -93,7 +93,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8080/health || exit 1
 
 # Switch to non-root user
-USER appuser
+USER 10001
 
 # Start services
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
