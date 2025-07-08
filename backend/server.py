@@ -25,6 +25,7 @@ import jwt
 from urllib.parse import urlparse
 import asyncio
 from collections import defaultdict
+import requests
 
 # Configure logging first
 logging.basicConfig(
@@ -497,10 +498,7 @@ async def view_secure_image(image_id: str, token: str, request: Request):
         img_data["views"] += 1
         
         # Create protected image with watermark and canvas-based delivery
-        import requests
-        from PIL import Image, ImageDraw, ImageFont
-        import io
-        import base64
+        # (imports already at top of file)
         
         # Get original image
         image_urls = {
