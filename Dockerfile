@@ -82,7 +82,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 RUN adduser -D -u 10001 -s /bin/sh appuser
 
 # Create necessary directories and set permissions for non-root user
-RUN mkdir -p /app/backend/images/gallery /app/logs /var/log/nginx /var/lib/nginx /run/nginx /var/cache/nginx /var/log/supervisor
+RUN mkdir -p /app/backend/images/gallery /var/log/nginx /var/lib/nginx /run/nginx /var/cache/nginx /var/log/supervisor
 RUN chown -R appuser:appuser /app /var/log/nginx /var/lib/nginx /run/nginx /var/cache/nginx /var/log/supervisor
 
 # Expose non-privileged port for choreo.dev
