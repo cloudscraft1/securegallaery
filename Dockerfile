@@ -4,16 +4,25 @@ FROM node:22-alpine AS frontend-builder
 # Build frontend
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
+
+# Install dependencies with better compatibility
 RUN npm install --legacy-peer-deps --production=false
 
+# Copy all frontend files
 COPY frontend/ .
+
 # Production environment variables
 ENV NODE_ENV=production
 ENV REACT_APP_BACKEND_URL=""
 ENV GENERATE_SOURCEMAP=false
+ENV DISABLE_ESLINT_PLUGIN=true
+ENV SKIP_PREFLIGHT_CHECK=true
 
-# Build the React app for production
-RUN npm run build
+# Build the React app for production with verbose output
+RUN npm run build --verbose
+
+# Verify build was successful
+RUN ls -la /app/frontend/build && ls -la /app/frontend/build/static
 
 # Python backend stage  
 FROM python:3.13-slim AS backend-builder

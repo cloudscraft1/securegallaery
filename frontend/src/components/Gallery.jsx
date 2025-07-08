@@ -400,17 +400,31 @@ const Gallery = () => {
                   )}
                   
                   {/* Ultra-Secure Image with Maximum Protection */}
-                  <UltraSecureImage
-                    imageUrl={image.url}
-                    alt={image.title}
-                    className="w-full h-auto object-cover transition-all duration-700 group-hover:scale-110 protected-content"
-                    onLoad={() => handleImageLoad(image.id)}
-                    onError={() => handleImageLoad(image.id)}
-                    style={{ 
-                      height: `${280 + (index % 3) * 100}px`,
-                      objectFit: 'cover'
-                    }}
-                  />
+                  {window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? (
+                    <UltraSecureImage
+imageUrl={`/api/secure/image/${image.id}/view`}
+                      alt={image.title}
+                      className="w-full h-auto object-cover transition-all duration-700 group-hover:scale-110 protected-content"
+                      onLoad={() =e handleImageLoad(image.id)}
+                      onError={() =e handleImageLoad(image.id)}
+                      style={{ 
+                        height: `${280 + (index % 3) * 100}px`,
+                        objectFit: 'cover'
+                      }}
+                    />
+                  ) : (
+                    <SimpleSecureImage
+                      imageId={image.id}
+                      alt={image.title}
+                      className="w-full h-auto object-cover transition-all duration-700 group-hover:scale-110 protected-content"
+                      onLoad={() => handleImageLoad(image.id)}
+                      onError={() => handleImageLoad(image.id)}
+                      style={{ 
+                        height: `${280 + (index % 3) * 100}px`,
+                        objectFit: 'cover'
+                      }}
+                    />
+                  )}
                   
                   {/* Security Watermark Overlay */}
                   <div className="absolute top-2 right-2 bg-blue-500/20 backdrop-blur-sm rounded-full px-2 py-1 border border-blue-500/30">

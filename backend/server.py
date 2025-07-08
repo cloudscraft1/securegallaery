@@ -82,6 +82,92 @@ SESSION_TIMEOUT = 3600  # 1 hour
 IMAGES_DIR = ROOT_DIR / "images" / "gallery"
 IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
+# Dynamic image discovery
+def discover_images():
+    """Dynamically discover images from the gallery folder"""
+    supported_formats = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'}
+    discovered_images = []
+    
+    try:
+        for i, image_file in enumerate(IMAGES_DIR.glob('*'), 1):
+            if image_file.suffix.lower() in supported_formats:
+                # Get file stats
+                file_stat = image_file.stat()
+                
+                # Create metadata from filename
+                name_without_ext = image_file.stem
+                title = name_without_ext.replace('_', ' ').replace('-', ' ').title()
+                
+                discovered_images.append({
+                    "id": str(i),
+                    "filename": image_file.name,
+                    "title": title,
+                    "description": f"Beautiful {title.lower()} from the secure gallery.",
+                    "tags": ["gallery", "secure", "protected"],
+                    "date_created": datetime.fromtimestamp(file_stat.st_mtime),
+                    "views": 0,
+                    "likes": 0,
+                    "camera": "VaultSecure Camera",
+                    "settings": "Secure Mode",
+                    "location": "VaultSecure Gallery",
+                    "file_size": file_stat.st_size,
+                    "dimensions": "Auto",
+                    "file_path": str(image_file)
+                })
+                
+    except Exception as e:
+        logger.error(f"Error discovering images: {e}")
+        
+    return discovered_images
+
+# Create sample images if none exist
+def create_sample_images():
+    """Create sample placeholder images if the gallery is empty"""
+    if not any(IMAGES_DIR.glob('*')):
+        logger.info("Creating sample images...")
+        
+        sample_images = [
+            {"filename": "mountain_sunrise.jpg", "color": "#FF6B6B", "text": "Mountain Sunrise"},
+            {"filename": "ocean_waves.jpg", "color": "#4ECDC4", "text": "Ocean Waves"},
+            {"filename": "city_lights.jpg", "color": "#45B7D1", "text": "City Lights"},
+            {"filename": "forest_path.jpg", "color": "#96CEB4", "text": "Forest Path"},
+            {"filename": "desert_dunes.jpg", "color": "#FFEAA7", "text": "Desert Dunes"}
+        ]
+        
+        for sample in sample_images:
+            try:
+                # Create a placeholder image
+                img = Image.new('RGB', (800, 600), color=sample["color"])
+                draw = ImageDraw.Draw(img)
+                
+                # Add text
+                try:
+                    font = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 36)
+                except:
+                    font = ImageFont.load_default()
+                
+                # Center the text
+                bbox = draw.textbbox((0, 0), sample["text"], font=font)
+                text_width = bbox[2] - bbox[0]
+                text_height = bbox[3] - bbox[1]
+                x = (800 - text_width) // 2
+                y = (600 - text_height) // 2
+                
+                draw.text((x, y), sample["text"], font=font, fill='white')
+                
+                # Add VaultSecure watermark
+                draw.text((10, 10), "VaultSecure Gallery", font=font, fill='rgba(255,255,255,0.7)')
+                
+                # Save the image
+                img.save(IMAGES_DIR / sample["filename"])
+                logger.info(f"Created sample image: {sample['filename']}")
+                
+            except Exception as e:
+                logger.error(f"Failed to create sample image {sample['filename']}: {e}")
+
+# Initialize images on startup
+create_sample_images()
+
 # Models
 class ImageMetadata(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -449,10 +535,14 @@ async def create_session_endpoint(request: Request):
 
 @api_router.get("/images", response_model=List[ImageResponse])
 async def get_images(request: Request, session_id: str = Depends(require_session)):
-    """Get list of all images with secure URLs"""
+    """Get list of all images with secure URLs from local gallery"""
+    
+    # Discover images dynamically from folder
+    discovered_images = discover_images()
+    logger.info(f"Discovered {len(discovered_images)} images in gallery")
     
     images = []
-    for img_data in SAMPLE_IMAGES:
+    for img_data in discovered_images:
         # Generate secure, time-limited tokens for each image
         view_token = generate_secure_token(
             img_data["id"], 
@@ -466,23 +556,6 @@ async def get_images(request: Request, session_id: str = Depends(require_session
             request.client.host, 
             "thumbnail"
         )
-        
-        # Use direct image URLs for better compatibility
-        image_urls = {
-            "1": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
-            "2": "https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800&q=80", 
-            "3": "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80",
-            "4": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
-            "5": "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&q=80"
-        }
-        
-        thumbnail_urls = {
-            "1": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&q=80",
-            "2": "https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=300&q=80",
-            "3": "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=300&q=80",
-            "4": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&q=80",
-            "5": "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=300&q=80"
-        }
         
         # Use SECURE token-based URLs - no direct access
         image_url = f"/api/secure/image/{img_data['id']}/view?token={view_token}"
@@ -522,9 +595,10 @@ async def view_secure_image(image_id: str, token: str, request: Request):
         if not validate_session(session_id, request.client.host):
             raise HTTPException(status_code=401, detail="Invalid session")
         
-        # Find image metadata
+        # Find image in discovered images
+        discovered_images = discover_images()
         img_data = None
-        for img in SAMPLE_IMAGES:
+        for img in discovered_images:
             if img["id"] == image_id:
                 img_data = img
                 break
@@ -532,28 +606,17 @@ async def view_secure_image(image_id: str, token: str, request: Request):
         if not img_data:
             raise HTTPException(status_code=404, detail="Image not found")
         
-        # Increment view count
+        # Increment view count (in memory for now)
         img_data["views"] += 1
         
-        # Create protected image with watermark and canvas-based delivery
-        # (imports already at top of file)
-        
-        # Get original image
-        image_urls = {
-            "1": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
-            "2": "https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800&q=80", 
-            "3": "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80",
-            "4": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
-            "5": "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&q=80"
-        }
-        
-        original_url = image_urls.get(image_id)
-        if not original_url:
-            raise HTTPException(status_code=404, detail="Image not found")
-        
-        # Download and process the image
-        response = requests.get(original_url)
-        img = Image.open(io.BytesIO(response.content))
+        # Load the actual image from local file
+        try:
+            image_path = Path(img_data["file_path"])
+            if not image_path.exists():
+                raise HTTPException(status_code=404, detail="Image file not found")
+            
+            # Open and process the local image
+            img = Image.open(image_path)
         
         # Add multiple watermarks and protection
         img = img.convert('RGBA')
@@ -644,9 +707,10 @@ async def view_secure_thumbnail(image_id: str, token: str, request: Request):
         if payload["image_id"] != image_id or payload["access_type"] != "thumbnail":
             raise HTTPException(status_code=403, detail="Invalid token for this resource")
         
-        # Find image metadata
+        # Find image in discovered images
+        discovered_images = discover_images()
         img_data = None
-        for img in SAMPLE_IMAGES:
+        for img in discovered_images:
             if img["id"] == image_id:
                 img_data = img
                 break
@@ -654,45 +718,102 @@ async def view_secure_thumbnail(image_id: str, token: str, request: Request):
         if not img_data:
             raise HTTPException(status_code=404, detail="Image not found")
         
-        # Thumbnail URLs for demo
-        thumbnail_urls = {
-            "1": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&q=80",
-            "2": "https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=300&q=80",
-            "3": "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=300&q=80",
-            "4": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&q=80",
-            "5": "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=300&q=80"
-        }
-        
-        # Security headers
-        headers = {
-            "X-Content-Type-Options": "nosniff",
-            "X-Frame-Options": "SAMEORIGIN",
-            "X-VaultSecure-Protected": "true",
-            "Cache-Control": "private, max-age=300"
-        }
-        
-        # Generate secure thumbnail
-        thumbnail_url = thumbnail_urls.get(image_id, f"https://via.placeholder.com/300x200/4c1d95/ffffff?text={img_data['title'].replace(' ', '+')}")
-        
-        from fastapi.responses import RedirectResponse
-        response = RedirectResponse(url=thumbnail_url)
-        for key, value in headers.items():
-            response.headers[key] = value
-        return response
+        # Load and create thumbnail from local file
+        try:
+            image_path = Path(img_data["file_path"])
+            if not image_path.exists():
+                raise HTTPException(status_code=404, detail="Image file not found")
+            
+            # Open image and create thumbnail
+            img = Image.open(image_path)
+            
+            # Create thumbnail (300x200)
+            img.thumbnail((300, 200), Image.Resampling.LANCZOS)
+            
+            # Add watermark to thumbnail
+            draw = ImageDraw.Draw(img)
+            try:
+                font = ImageFont.load_default()
+            except:
+                font = None
+            
+            # Add small watermark
+            if font:
+                draw.text((5, 5), "VaultSecure", font=font, fill='rgba(255,255,255,0.8)')
+            
+            # Convert to bytes
+            img_buffer = io.BytesIO()
+            img.save(img_buffer, format='JPEG', quality=80)
+            img_buffer.seek(0)
+            
+            # Return as response
+            return StreamingResponse(
+                io.BytesIO(img_buffer.getvalue()),
+                media_type="image/jpeg",
+                headers={
+                    "X-Content-Type-Options": "nosniff",
+                    "X-Frame-Options": "SAMEORIGIN",
+                    "X-VaultSecure-Protected": "true",
+                    "Cache-Control": "private, max-age=300"
+                }
+            )
+            
+        except Exception as img_error:
+            logger.error(f"Error processing image {image_id}: {img_error}")
+            # Create fallback thumbnail
+            fallback_img = Image.new('RGB', (300, 200), color='#4c1d95')
+            draw = ImageDraw.Draw(fallback_img)
+            
+            try:
+                font = ImageFont.load_default()
+                draw.text((10, 90), img_data['title'], font=font, fill='white')
+            except:
+                pass
+                
+            img_buffer = io.BytesIO()
+            fallback_img.save(img_buffer, format='JPEG', quality=80)
+            img_buffer.seek(0)
+            
+            return StreamingResponse(
+                io.BytesIO(img_buffer.getvalue()),
+                media_type="image/jpeg",
+                headers={
+                    "X-Content-Type-Options": "nosniff",
+                    "X-VaultSecure-Protected": "true",
+                    "Cache-Control": "private, max-age=300"
+                }
+            )
         
     except Exception as e:
         logger.error(f"Error serving thumbnail {image_id}: {e}")
-        # Fallback
-        placeholder_url = f"https://via.placeholder.com/300x200/4c1d95/ffffff?text=Thumb+{image_id}"
-        return RedirectResponse(url=placeholder_url)
+        # Final fallback
+        fallback_img = Image.new('RGB', (300, 200), color='#ef4444')
+        draw = ImageDraw.Draw(fallback_img)
+        
+        try:
+            font = ImageFont.load_default()
+            draw.text((10, 90), f"Thumb {image_id}", font=font, fill='white')
+        except:
+            pass
+            
+        img_buffer = io.BytesIO()
+        fallback_img.save(img_buffer, format='JPEG', quality=80)
+        img_buffer.seek(0)
+        
+        return StreamingResponse(
+            io.BytesIO(img_buffer.getvalue()),
+            media_type="image/jpeg",
+            headers={"X-Content-Type-Options": "nosniff"}
+        )
 
 @api_router.post("/images/{image_id}/like")
 async def like_image(image_id: str, request: Request, session_id: str = Depends(require_session)):
     """Like an image with security validation"""
     
-    # Find image metadata
+    # Find image in discovered images
+    discovered_images = discover_images()
     img_data = None
-    for img in SAMPLE_IMAGES:
+    for img in discovered_images:
         if img["id"] == image_id:
             img_data = img
             break
@@ -700,10 +821,27 @@ async def like_image(image_id: str, request: Request, session_id: str = Depends(
     if not img_data:
         raise HTTPException(status_code=404, detail="Image not found")
     
-    # Increment like count
+    # Increment like count (in memory for now)
     img_data["likes"] += 1
     
     return {"message": "Image liked successfully", "likes": img_data["likes"]}
+
+@api_router.get("/images/refresh")
+async def refresh_images(request: Request, session_id: str = Depends(require_session)):
+    """Refresh image discovery - useful for adding new images"""
+    
+    try:
+        discovered_images = discover_images()
+        logger.info(f"Refreshed image discovery: found {len(discovered_images)} images")
+        
+        return {
+            "message": "Images refreshed successfully",
+            "count": len(discovered_images),
+            "images": [img["filename"] for img in discovered_images]
+        }
+    except Exception as e:
+        logger.error(f"Error refreshing images: {e}")
+        raise HTTPException(status_code=500, detail="Failed to refresh images")
 
 @api_router.get("/session/validate")
 async def validate_session_endpoint(request: Request):
@@ -816,6 +954,13 @@ async def security_headers_middleware(request: Request, call_next):
 async def startup_event():
     logger.info("VaultSecure API starting up with maximum security...")
     logger.info(f"Images directory: {IMAGES_DIR}")
+    
+    # Discover existing images
+    discovered_images = discover_images()
+    logger.info(f"Discovered {len(discovered_images)} images in gallery:")
+    for img in discovered_images:
+        logger.info(f"  - {img['filename']} ({img['title']})")
+    
     logger.info(f"Session timeout: {SESSION_TIMEOUT} seconds")
     logger.info(f"Token expiry: {TOKEN_EXPIRY_MINUTES} minutes")
     logger.info(f"Rate limit: {MAX_REQUESTS_PER_MINUTE} requests/minute")
