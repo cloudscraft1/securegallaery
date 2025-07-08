@@ -88,7 +88,7 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
     const detectDevTools = () => {
       let devtoolsDetected = false;
       let warningCount = 0;
-      const threshold = 200; // More lenient threshold
+      const threshold = 300; // Increased leniency
 
       const check = () => {
         const heightDiff = window.outerHeight - window.innerHeight;
@@ -99,13 +99,13 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
             devtoolsDetected = true;
             warningCount++;
             
-            // Only log after multiple detections to avoid false positives
-            if (warningCount > 2) {
-              handleSecurityViolation('Developer tools detected');
+            // Log only if consistently detected
+            if (warningCount > 5) {
+              handleSecurityViolation('Developer tools consistently detected');
               
-              // Gentle protection mode
-              canvas.style.filter = 'blur(10px)';
-              canvas.style.opacity = '0.7';
+              // More gentle protection mode
+              canvas.style.filter = 'blur(5px)';
+              canvas.style.opacity = '0.9';
               
               // Show gentle warning
               showSecurityAlert('🔒 Developer Tools Detected - Content Protected');
@@ -114,13 +114,13 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
         } else {
           if (devtoolsDetected) {
             devtoolsDetected = false;
-            // Restore content after delay
+            // Restore content after longer delay
             setTimeout(() => {
               if (canvas) {
                 canvas.style.filter = 'none';
                 canvas.style.opacity = '1';
               }
-            }, 1000);
+            }, 1500);
           }
         }
       };
@@ -413,7 +413,7 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
           ctx.font = 'bold 18px Arial';
           ctx.textAlign = 'center';
           ctx.fillText('🔒 VAULTSECURE', 200, 140);
-          ctx.fillText('System Protected', 200, 170);
+          ctx.fillText('Temporary Load Issue', 200, 170);
         }
         
         setLoading(false);
