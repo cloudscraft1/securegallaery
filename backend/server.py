@@ -46,7 +46,8 @@ ALLOWED_DOMAINS = [
     "8527c513-d6d9-4747-96e7-345f06b75467.e1-eu-north-azure.choreoapps.dev",
     "c8d34c90-0819-4af7-aa7d-2a5f6dafa7f8.e1-eu-north-azure.choreoapps.dev",
     "*.e1-eu-north-azure.choreoapps.dev",
-    "*.choreoapps.dev"
+    "*.choreoapps.dev",
+    "securegallaery.onrender.com"
 ]
 
 # Create the main app
@@ -700,7 +701,8 @@ app.add_middleware(
         "https://*.preview.emergentagent.com",
         "https://c8d34c90-0819-4af7-aa7d-2a5f6dafa7f8.e1-eu-north-azure.choreoapps.dev",
         "https://*.e1-eu-north-azure.choreoapps.dev",
-        "https://*.choreoapps.dev"
+        "https://*.choreoapps.dev",
+        "https://securegallaery.onrender.com"
     ],
     allow_methods=["GET", "POST", "DELETE", "OPTIONS", "PUT", "PATCH"],  # Add all methods
     allow_headers=["*"],  # Allow all headers for development
@@ -718,7 +720,8 @@ app.add_middleware(
         "*.preview.emergentagent.com",
         "c8d34c90-0819-4af7-aa7d-2a5f6dafa7f8.e1-eu-north-azure.choreoapps.dev",
         "*.e1-eu-north-azure.choreoapps.dev",
-        "*.choreoapps.dev"
+        "*.choreoapps.dev",
+        "securegallaery.onrender.com"
     ]
 )
 

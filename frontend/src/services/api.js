@@ -208,7 +208,8 @@ class VaultSecureAPI {
       '127.0.0.1', 
       'your-domain.com',
       'choreoapps.dev',
-      'e1-eu-north-azure.choreoapps.dev'
+      'e1-eu-north-azure.choreoapps.dev',
+      'securegallaery.onrender.com'
     ];
     const currentDomain = window.location.hostname;
     console.log('Current domain:', currentDomain);
