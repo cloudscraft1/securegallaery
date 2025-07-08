@@ -274,6 +274,15 @@ class VaultSecureAPI {
       console.log('Current hostname:', window.location.hostname);
       console.log('Current origin:', window.location.origin);
       
+      // First test basic connectivity
+      try {
+        await axios.get(`${API_BASE}/test`, { timeout: 10000 });
+        console.log('API connectivity test passed');
+      } catch (testError) {
+        console.warn('API connectivity test failed:', testError.message);
+        // Continue anyway
+      }
+      
       const response = await axios.post(`${API_BASE}/session`, {}, {
         headers: {
           'X-Requested-With': 'XMLHttpRequest',
