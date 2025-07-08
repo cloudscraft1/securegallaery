@@ -58,7 +58,54 @@ try:
     
     @app.get("/api/images")
     def get_images():
-        return []  # Return empty array for now
+        # Return sample images for testing
+        sample_images = [
+            {
+                "id": "1",
+                "title": "Mountain Sunrise",
+                "description": "Beautiful mountain sunrise - Emergency Mode",
+                "tags": ["mountain", "sunrise", "landscape"],
+                "date": "2024-01-15",
+                "views": 156,
+                "likes": 24,
+                "camera": "Emergency Camera",
+                "settings": "Emergency Mode",
+                "location": "Emergency Location",
+                "url": "/api/emergency-image/1",
+                "thumbnail_url": "/api/emergency-image/1"
+            },
+            {
+                "id": "2",
+                "title": "Ocean Waves",
+                "description": "Powerful ocean waves - Emergency Mode",
+                "tags": ["ocean", "waves", "water"],
+                "date": "2024-01-10",
+                "views": 89,
+                "likes": 18,
+                "camera": "Emergency Camera",
+                "settings": "Emergency Mode",
+                "location": "Emergency Location",
+                "url": "/api/emergency-image/2",
+                "thumbnail_url": "/api/emergency-image/2"
+            }
+        ]
+        return sample_images
+    
+    @app.get("/api/emergency-image/{image_id}")
+    def get_emergency_image(image_id: str):
+        # Return a simple emergency response
+        return {
+            "success": True,
+            "imageData": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNGMxZDk1Ii8+CiAgPHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIzNiIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIwLjNlbSI+RW1lcmdlbmN5IEltYWdlPC90ZXh0PgogIDx0ZXh0IHg9IjEwIiB5PSIzMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE2IiBmaWxsPSJ3aGl0ZSI+VmF1bHRTZWN1cmUgRW1lcmdlbmN5PC90ZXh0Pgo8L3N2Zz4=",
+            "imageId": image_id,
+            "sessionId": "emergency",
+            "timestamp": datetime.utcnow().isoformat(),
+            "security": {
+                "watermarked": True,
+                "sessionBound": True,
+                "antiDownload": True
+            }
+        }
     
     if __name__ == "__main__":
         import uvicorn
