@@ -1,6 +1,22 @@
 import axios from 'axios';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+// Auto-detect backend URL based on environment
+const getBackendURL = () => {
+  // If environment variable is set, use it
+  if (process.env.REACT_APP_BACKEND_URL) {
+    return process.env.REACT_APP_BACKEND_URL;
+  }
+  
+  // For deployed environments, use same origin
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return window.location.origin;
+  }
+  
+  // For local development
+  return 'http://localhost:8000';
+};
+
+const BACKEND_URL = getBackendURL();
 const API_BASE = `${BACKEND_URL}/api`;
 
 console.log('API Configuration:', {
@@ -254,13 +270,17 @@ class VaultSecureAPI {
   async createSession() {
     try {
       console.log('Creating session with API_BASE:', API_BASE);
+      console.log('Current hostname:', window.location.hostname);
+      console.log('Current origin:', window.location.origin);
+      
       const response = await axios.post(`${API_BASE}/session`, {}, {
         headers: {
           'X-Requested-With': 'XMLHttpRequest',
           'X-VaultSecure-Client': 'web-app',
           'Content-Type': 'application/json'
         },
-        withCredentials: false  // Disable for local development
+        withCredentials: false,
+        timeout: 30000  // Increase timeout to 30 seconds
       });
       
       console.log('Session created successfully:', response.data);
@@ -274,8 +294,28 @@ class VaultSecureAPI {
         message: error.message,
         response: error.response?.data,
         status: error.response?.status,
-        url: `${API_BASE}/session`
+        url: `${API_BASE}/session`,
+        code: error.code,
+        config: {
+          baseURL: error.config?.baseURL,
+          url: error.config?.url,
+          method: error.config?.method
+        }
       });
+      
+      // More specific error messages
+      if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
+        throw new Error('Network connection failed. Please check your internet connection and try again.');
+      }
+      
+      if (error.code === 'ECONNREFUSED' || error.message.includes('ECONNREFUSED')) {
+        throw new Error('Backend service is not available. Please try again later.');
+      }
+      
+      if (!error.response) {
+        throw new Error('Unable to connect to the server. Please check your connection.');
+      }
+      
       throw new Error(`Session creation failed: ${error.response?.data?.detail || error.message}`);
     }
   }
@@ -293,20 +333,43 @@ class VaultSecureAPI {
         // Validate the session
         try {
           await this.api.get('/session/validate');
+          console.log('Existing session validated successfully');
           return true;
         } catch (error) {
+          console.warn('Stored session validation failed:', error.message);
           // Session invalid, remove it
           this.clearSession();
         }
       } else {
+        console.log('Stored session expired, clearing...');
         // Session expired
         this.clearSession();
       }
     }
-
-    // Create new session
-    await this.createSession();
-    return true;
+    
+    // Create new session with retry logic
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        await this.createSession();
+        console.log('Session created successfully on attempt:', 4 - retries);
+        return true;
+      } catch (error) {
+        retries--;
+        console.warn(`Session creation attempt ${4 - retries} failed:`, error.message);
+        
+        if (retries > 0) {
+          console.log(`Retrying session creation... ${retries} attempts remaining`);
+          // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } else {
+          console.error('All session creation attempts failed');
+          throw error;
+        }
+      }
+    }
+    
+    return false;
   }
 
   clearSession() {
