@@ -43,7 +43,10 @@ MAX_REQUESTS_PER_MINUTE = 60
 ALLOWED_DOMAINS = [
     "localhost:3000", 
     "127.0.0.1:3000", 
-    "8527c513-d6d9-4747-96e7-345f06b75467.e1-eu-north-azure.choreoapps.dev"
+    "8527c513-d6d9-4747-96e7-345f06b75467.e1-eu-north-azure.choreoapps.dev",
+    "c8d34c90-0819-4af7-aa7d-2a5f6dafa7f8.e1-eu-north-azure.choreoapps.dev",
+    "*.e1-eu-north-azure.choreoapps.dev",
+    "*.choreoapps.dev"
 ]
 
 # Create the main app
@@ -694,7 +697,10 @@ app.add_middleware(
         "http://localhost:3000", 
         "http://127.0.0.1:3000", 
         "https://5cfb91b9-9781-4651-ab88-c7db44f175d7.preview.emergentagent.com",
-        "https://*.preview.emergentagent.com"
+        "https://*.preview.emergentagent.com",
+        "https://c8d34c90-0819-4af7-aa7d-2a5f6dafa7f8.e1-eu-north-azure.choreoapps.dev",
+        "https://*.e1-eu-north-azure.choreoapps.dev",
+        "https://*.choreoapps.dev"
     ],
     allow_methods=["GET", "POST", "DELETE", "OPTIONS", "PUT", "PATCH"],  # Add all methods
     allow_headers=["*"],  # Allow all headers for development
@@ -709,7 +715,10 @@ app.add_middleware(
         "127.0.0.1", 
         "*.localhost", 
         "5cfb91b9-9781-4651-ab88-c7db44f175d7.preview.emergentagent.com",
-        "*.preview.emergentagent.com"
+        "*.preview.emergentagent.com",
+        "c8d34c90-0819-4af7-aa7d-2a5f6dafa7f8.e1-eu-north-azure.choreoapps.dev",
+        "*.e1-eu-north-azure.choreoapps.dev",
+        "*.choreoapps.dev"
     ]
 )
 

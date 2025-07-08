@@ -187,18 +187,29 @@ class VaultSecureAPI {
     }
 
     // 11. Domain verification (allow localhost for development)
-    const allowedDomains = ['localhost', '127.0.0.1', 'your-domain.com'];
+    const allowedDomains = [
+      'localhost', 
+      '127.0.0.1', 
+      'your-domain.com',
+      'choreoapps.dev',
+      'e1-eu-north-azure.choreoapps.dev'
+    ];
     const currentDomain = window.location.hostname;
     console.log('Current domain:', currentDomain);
     
-    // More lenient check for localhost
+    // More lenient check for localhost and allowed domains
     const isLocalhost = currentDomain === 'localhost' || 
                        currentDomain === '127.0.0.1' || 
                        currentDomain === '' || 
                        currentDomain.startsWith('localhost') ||
                        currentDomain.startsWith('127.0.0.1');
     
-    if (!isLocalhost && !allowedDomains.some(domain => currentDomain.includes(domain))) {
+    const isAllowedDomain = allowedDomains.some(domain => 
+      currentDomain.includes(domain) || 
+      currentDomain.endsWith(domain)
+    );
+    
+    if (!isLocalhost && !isAllowedDomain) {
       this.reportSuspiciousActivity(`Unauthorized domain: ${currentDomain}`);
       document.body.innerHTML = '<div style="text-align:center;padding:50px;color:red;">🚨 UNAUTHORIZED ACCESS - VaultSecure Protection Active</div>';
     }
