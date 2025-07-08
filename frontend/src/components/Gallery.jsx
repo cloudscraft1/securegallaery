@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, Heart, Download, Sparkles, Shield, Lock, AlertTriangle, CheckCircle } from 'lucide-react';
 import ImageModal from './ImageModal';
-import SecureImage from './SecureImage';
+import UltraSecureImage from './UltraSecureImage';
 import apiService from '../services/api';
 import { useToast } from '../hooks/use-toast';
 import screenshotProtection from '../lib/safe-screenshot-protection';
@@ -390,27 +390,17 @@ const Gallery = () => {
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-900/50 to-indigo-900/50 animate-pulse rounded-2xl"></div>
                   )}
                   
-                  {/* Use standard images with security protections */}
-                  <img
-                    src={image.url}
+                  {/* Ultra-Secure Image with Maximum Protection */}
+                  <UltraSecureImage
+                    imageUrl={image.url}
                     alt={image.title}
                     className="w-full h-auto object-cover transition-all duration-700 group-hover:scale-110 protected-content"
                     onLoad={() => handleImageLoad(image.id)}
-                    onError={(e) => {
-                      console.error('Image failed to load:', image.url);
-                      handleImageLoad(image.id);
-                    }}
+                    onError={() => handleImageLoad(image.id)}
                     style={{ 
                       height: `${280 + (index % 3) * 100}px`,
-                      objectFit: 'cover',
-                      userSelect: 'none'
+                      objectFit: 'cover'
                     }}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      console.log('🔒 Right-click blocked - VaultSecure Protection');
-                      return false;
-                    }}
-                    draggable="false"
                   />
                   
                   {/* Security Watermark Overlay */}

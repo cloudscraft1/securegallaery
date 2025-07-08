@@ -306,17 +306,23 @@ def require_session(request: Request):
         raise HTTPException(status_code=500, detail="Session creation failed")
 
 def require_secure_token(request: Request, token: str):
-    # For demo, make token validation more lenient but still secure
+    # STRICT token validation for real security
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        
+        # Verify IP address matches
+        if payload.get("ip_address") != request.client.host:
+            logger.warning(f"IP mismatch: token {payload.get('ip_address')} vs request {request.client.host}")
+            raise HTTPException(status_code=403, detail="Token invalid for this IP")
+        
+        # Verify session is still active
+        session_id = payload.get("session_id")
+        if not validate_session(session_id, request.client.host):
+            raise HTTPException(status_code=401, detail="Session expired or invalid")
+        
         return payload
     except jwt.ExpiredSignatureError:
-        # For demo, allow expired tokens to work for better UX
-        try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM], options={"verify_exp": False})
-            return payload
-        except:
-            raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
@@ -478,9 +484,9 @@ async def get_images(request: Request, session_id: str = Depends(require_session
             "5": "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=300&q=80"
         }
         
-        # Use direct URLs for demo - still secure with watermarks in frontend
-        image_url = image_urls.get(img_data['id'], f"/api/secure/image/{img_data['id']}/view?token={view_token}")
-        thumbnail_url = thumbnail_urls.get(img_data['id'], f"/api/secure/image/{img_data['id']}/thumbnail?token={thumbnail_token}")
+        # Use SECURE token-based URLs - no direct access
+        image_url = f"/api/secure/image/{img_data['id']}/view?token={view_token}"
+        thumbnail_url = f"/api/secure/image/{img_data['id']}/thumbnail?token={thumbnail_token}"
         
         images.append(ImageResponse(
             id=img_data["id"],
@@ -724,6 +730,23 @@ async def logout_session(request: Request, session_id: str = Depends(require_ses
         del active_sessions[session_id]
     
     return {"message": "Session invalidated successfully"}
+
+@api_router.post("/security-violation")
+async def log_security_violation(request: Request):
+    """Log security violations for monitoring"""
+    try:
+        body = await request.json()
+        violation = body.get("violation", "Unknown violation")
+        timestamp = body.get("timestamp", datetime.utcnow().isoformat())
+        user_agent = body.get("userAgent", "Unknown")
+        
+        logger.critical(f"🚨 SECURITY VIOLATION: {violation} | IP: {request.client.host} | UA: {user_agent} | Time: {timestamp}")
+        
+        # In production, you would store this in a database or send alerts
+        return {"status": "logged", "message": "Security violation recorded"}
+    except Exception as e:
+        logger.error(f"Failed to log security violation: {e}")
+        return {"status": "error", "message": "Failed to log violation"}
 
 # Include the router in the main app
 app.include_router(api_router)
