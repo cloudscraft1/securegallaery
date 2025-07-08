@@ -140,23 +140,47 @@ def create_sample_images():
                 img = Image.new('RGB', (800, 600), color=sample["color"])
                 draw = ImageDraw.Draw(img)
                 
-                # Add text
+                # Add text with better font handling
                 try:
-                    font = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 36)
-                except:
+                    # Try multiple font paths
+                    font_paths = [
+                        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+                        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+                        "/usr/share/fonts/TTF/arial.ttf",
+                        "/System/Library/Fonts/Arial.ttf"
+                    ]
+                    
+                    font = None
+                    for font_path in font_paths:
+                        try:
+                            font = ImageFont.truetype(font_path, 36)
+                            break
+                        except:
+                            continue
+                    
+                    if font is None:
+                        font = ImageFont.load_default()
+                        
+                except Exception as font_error:
+                    logger.warning(f"Font loading error: {font_error}")
                     font = ImageFont.load_default()
                 
                 # Center the text
-                bbox = draw.textbbox((0, 0), sample["text"], font=font)
-                text_width = bbox[2] - bbox[0]
-                text_height = bbox[3] - bbox[1]
-                x = (800 - text_width) // 2
-                y = (600 - text_height) // 2
+                try:
+                    bbox = draw.textbbox((0, 0), sample["text"], font=font)
+                    text_width = bbox[2] - bbox[0]
+                    text_height = bbox[3] - bbox[1]
+                    x = (800 - text_width) // 2
+                    y = (600 - text_height) // 2
+                except:
+                    # Fallback positioning
+                    x, y = 200, 280
                 
                 draw.text((x, y), sample["text"], font=font, fill='white')
                 
                 # Add VaultSecure watermark
-                draw.text((10, 10), "VaultSecure Gallery", font=font, fill='rgba(255,255,255,0.7)')
+                draw.text((10, 10), "VaultSecure Gallery", font=font, fill='white')
+                draw.text((10, 580), f"Protected Image {sample['filename']}", font=font, fill='rgba(255,255,255,0.7)')
                 
                 # Save the image
                 img.save(IMAGES_DIR / sample["filename"])
@@ -760,15 +784,27 @@ async def view_secure_thumbnail(image_id: str, token: str, request: Request):
             
         except Exception as img_error:
             logger.error(f"Error processing image {image_id}: {img_error}")
-            # Create fallback thumbnail
+            # Create fallback thumbnail with better error handling
             fallback_img = Image.new('RGB', (300, 200), color='#4c1d95')
             draw = ImageDraw.Draw(fallback_img)
             
             try:
                 font = ImageFont.load_default()
-                draw.text((10, 90), img_data['title'], font=font, fill='white')
-            except:
-                pass
+                # Center the text
+                text = img_data.get('title', f'Image {image_id}')
+                bbox = draw.textbbox((0, 0), text, font=font)
+                text_width = bbox[2] - bbox[0]
+                text_height = bbox[3] - bbox[1]
+                x = (300 - text_width) // 2
+                y = (200 - text_height) // 2
+                
+                draw.text((x, y), text, font=font, fill='white')
+                draw.text((10, 10), 'VaultSecure', font=font, fill='rgba(255,255,255,0.7)')
+                draw.text((10, 180), 'Protected', font=font, fill='rgba(255,255,255,0.7)')
+            except Exception as font_error:
+                logger.error(f"Font error: {font_error}")
+                # Fallback without font
+                draw.rectangle([50, 80, 250, 120], fill='white')
                 
             img_buffer = io.BytesIO()
             fallback_img.save(img_buffer, format='JPEG', quality=80)
@@ -780,7 +816,8 @@ async def view_secure_thumbnail(image_id: str, token: str, request: Request):
                 headers={
                     "X-Content-Type-Options": "nosniff",
                     "X-VaultSecure-Protected": "true",
-                    "Cache-Control": "private, max-age=300"
+                    "Cache-Control": "private, max-age=300",
+                    "X-Error": "Image processing failed"
                 }
             )
         

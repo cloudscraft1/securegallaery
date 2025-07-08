@@ -48,7 +48,13 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
           document.addEventListener('keyup', (e) => {
             if (e.keyCode === 44 || e.key === 'PrintScreen') {
               screenshotAttempts++;
-              handleSecurityViolation('Screenshot attempt via Print Screen');
+              handleSecurityViolation('Screenshot attempt via Print Screen - BLOCKED');
+              
+              // Temporarily hide content
+              canvas.style.visibility = 'hidden';
+              setTimeout(() => {
+                canvas.style.visibility = 'visible';
+              }, 1000);
             }
           });
         },
@@ -56,9 +62,31 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
         // Windows + Shift + S (Windows Snipping Tool)
         () => {
           document.addEventListener('keydown', (e) => {
-            if (e.metaKey && e.shiftKey && e.key === 'S') {
+            if ((e.metaKey && e.shiftKey && e.key === 'S') || 
+                (e.ctrlKey && e.shiftKey && e.key === 'S')) {
               screenshotAttempts++;
-              handleSecurityViolation('Screenshot attempt via Snipping Tool');
+              handleSecurityViolation('Screenshot attempt via Snipping Tool - BLOCKED');
+              
+              // Temporarily hide content
+              canvas.style.visibility = 'hidden';
+              setTimeout(() => {
+                canvas.style.visibility = 'visible';
+              }, 1000);
+            }
+          });
+        },
+        
+        // Additional screenshot detection methods
+        () => {
+          // Detect Alt + Print Screen
+          document.addEventListener('keydown', (e) => {
+            if (e.altKey && e.keyCode === 44) {
+              screenshotAttempts++;
+              handleSecurityViolation('Alt + Print Screen blocked');
+              canvas.style.visibility = 'hidden';
+              setTimeout(() => {
+                canvas.style.visibility = 'visible';
+              }, 1000);
             }
           });
         },
@@ -84,43 +112,70 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
       methods.forEach(method => method());
     };
 
-    // 3. Smart developer tools detection
+    // 3. Enhanced developer tools detection
     const detectDevTools = () => {
       let devtoolsDetected = false;
       let warningCount = 0;
-      const threshold = 300; // Increased leniency
+      let consecutiveDetections = 0;
+      const threshold = 200; // More sensitive
 
       const check = () => {
         const heightDiff = window.outerHeight - window.innerHeight;
         const widthDiff = window.outerWidth - window.innerWidth;
         
         if (heightDiff > threshold || widthDiff > threshold) {
-          if (!devtoolsDetected) {
+          consecutiveDetections++;
+          if (!devtoolsDetected && consecutiveDetections > 3) {
             devtoolsDetected = true;
             warningCount++;
             
-            // Log only if consistently detected
-            if (warningCount > 5) {
-              handleSecurityViolation('Developer tools consistently detected');
-              
-              // More gentle protection mode
-              canvas.style.filter = 'blur(5px)';
-              canvas.style.opacity = '0.9';
-              
-              // Show gentle warning
-              showSecurityAlert('🔒 Developer Tools Detected - Content Protected');
-            }
+            handleSecurityViolation('Developer tools detected - CRITICAL');
+            
+            // Strong protection mode
+            canvas.style.filter = 'blur(30px)';
+            canvas.style.opacity = '0.3';
+            
+            // Show strong warning
+            showSecurityAlert('🚨 SECURITY BREACH: Developer Tools Detected');
+            
+            // Additional security measures
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: rgba(220, 38, 38, 0.8);
+              z-index: 999998;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              font-size: 24px;
+              font-weight: bold;
+              backdrop-filter: blur(10px);
+            `;
+            overlay.textContent = '🚨 SECURITY VIOLATION DETECTED';
+            document.body.appendChild(overlay);
+            
+            setTimeout(() => {
+              if (overlay.parentNode) {
+                overlay.parentNode.removeChild(overlay);
+              }
+            }, 3000);
           }
         } else {
+          consecutiveDetections = 0;
           if (devtoolsDetected) {
             devtoolsDetected = false;
-            // Restore content after longer delay
+            // Restore content after delay
             setTimeout(() => {
               if (canvas) {
                 canvas.style.filter = 'none';
                 canvas.style.opacity = '1';
               }
-            }, 1500);
+            }, 2000);
           }
         }
       };

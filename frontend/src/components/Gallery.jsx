@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, Heart, Download, Sparkles, Shield, Lock, AlertTriangle, CheckCircle } from 'lucide-react';
 import ImageModal from './ImageModal';
 import UltraSecureImage from './UltraSecureImage';
+import SimpleSecureImage from './SimpleSecureImage';
 import apiService from '../services/api';
 import { useToast } from '../hooks/use-toast';
 import screenshotProtection from '../lib/safe-screenshot-protection';
@@ -402,11 +403,11 @@ const Gallery = () => {
                   {/* Ultra-Secure Image with Maximum Protection */}
                   {window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? (
                     <UltraSecureImage
-imageUrl={`/api/secure/image/${image.id}/view`}
+                      imageUrl={`/api/secure/image/${image.id}/view`}
                       alt={image.title}
                       className="w-full h-auto object-cover transition-all duration-700 group-hover:scale-110 protected-content"
-                      onLoad={() =e handleImageLoad(image.id)}
-                      onError={() =e handleImageLoad(image.id)}
+                      onLoad={() => handleImageLoad(image.id)}
+                      onError={() => handleImageLoad(image.id)}
                       style={{ 
                         height: `${280 + (index % 3) * 100}px`,
                         objectFit: 'cover'

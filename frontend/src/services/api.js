@@ -510,22 +510,69 @@ class VaultSecureAPI {
   // Monitor for suspicious activity
   reportSuspiciousActivity(activity) {
     console.warn(`🚨 VaultSecure: Suspicious activity detected - ${activity}`);
-    // In production, you could send this to your backend for logging
+    
+    // Send to backend for logging
+    try {
+      this.api.post('/security-violation', {
+        violation: `SECURITY: ${activity}`,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        url: window.location.href,
+        ip: 'client-side'
+      }).catch(() => {}); // Silent fail
+    } catch (e) {
+      // Silent fail
+    }
+    
+    // Show user warning
+    this.showSecurityWarning(`🚨 Security Alert: ${activity}`);
   }
 
   // Report errors to monitoring system
   reportError(errorData) {
     console.error('🚨 VaultSecure Error:', errorData);
-    // In production, you could send this to your backend for logging
+    
+    // Send to backend for logging
     try {
       this.api.post('/security-violation', {
         violation: `ERROR: ${errorData.source} - ${errorData.error}`,
         timestamp: errorData.timestamp,
-        userAgent: navigator.userAgent
+        userAgent: navigator.userAgent,
+        url: window.location.href,
+        stack: errorData.stack || 'N/A'
       }).catch(() => {}); // Silent fail
     } catch (e) {
       // Silent fail
     }
+  }
+
+  // Show security warning to user
+  showSecurityWarning(message) {
+    const warning = document.createElement('div');
+    warning.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(220, 38, 38, 0.95);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 8px;
+      z-index: 999999;
+      font-weight: bold;
+      border: 2px solid #dc2626;
+      backdrop-filter: blur(10px);
+      font-size: 14px;
+      max-width: 300px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    `;
+    warning.textContent = message;
+    document.body.appendChild(warning);
+    
+    setTimeout(() => {
+      if (warning.parentNode) {
+        warning.parentNode.removeChild(warning);
+      }
+    }, 5000);
   }
 }
 
