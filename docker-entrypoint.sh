@@ -9,7 +9,7 @@ echo "🚀 Starting VaultSecure Gallery..."
 mkdir -p /app/backend/images/gallery
 mkdir -p /var/log/nginx
 mkdir -p /var/log/supervisor
-mkdir -p /run/nginx
+mkdir -p /var/run/nginx
 mkdir -p /tmp/client_temp
 mkdir -p /tmp/proxy_temp
 mkdir -p /tmp/fastcgi_temp
@@ -23,7 +23,7 @@ if [ "$(id -u)" != "0" ]; then
     chmod 755 /app/backend/images/gallery 2>/dev/null || true
     chmod 755 /var/log/nginx 2>/dev/null || true
     chmod 755 /var/log/supervisor 2>/dev/null || true
-    chmod 755 /run/nginx 2>/dev/null || true
+    chmod 755 /var/run/nginx 2>/dev/null || true
 else
     echo "Running as root user"
 fi

@@ -15,46 +15,38 @@ ENV GENERATE_SOURCEMAP=false
 # Build the React app for production
 RUN npm run build
 
-# Python backend stage
-FROM python:3.13-alpine AS backend-builder
+# Python backend stage  
+FROM python:3.13-slim AS backend-builder
 
-# Install build dependencies
-RUN apk add --no-cache \
+# Install minimal system dependencies
+RUN apt-get update && apt-get install -y \
     gcc \
-    musl-dev \
-    linux-headers \
-    postgresql-dev \
-    jpeg-dev \
-    zlib-dev \
-    freetype-dev \
-    lcms2-dev \
-    openjpeg-dev \
-    tiff-dev \
-    tk-dev \
-    tcl-dev
+    libjpeg-dev \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip
+RUN pip install --upgrade pip
 
 WORKDIR /app/backend
 COPY backend/requirements.txt .
+
+# Install Python packages
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/ .
 
 # Final stage - combine frontend and backend
-FROM python:3.13-alpine AS production
+FROM python:3.13-slim AS production
 
 # Install runtime dependencies
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     nginx \
     supervisor \
     curl \
-    jpeg \
-    zlib \
-    freetype \
-    lcms2 \
-    openjpeg \
-    tiff \
-    tk \
-    tcl
+    libjpeg62-turbo \
+    zlib1g \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
 WORKDIR /app
@@ -70,7 +62,10 @@ COPY --from=frontend-builder /app/frontend/build ./frontend/build
 # Create necessary directories
 RUN mkdir -p /app/backend/images/gallery
 RUN mkdir -p /var/log/supervisor
-RUN mkdir -p /run/nginx
+RUN mkdir -p /var/run/nginx
+RUN mkdir -p /var/log/nginx
+RUN mkdir -p /var/lib/nginx
+RUN mkdir -p /var/cache/nginx
 
 # Copy configuration files
 COPY nginx.conf /etc/nginx/nginx.conf
@@ -79,11 +74,10 @@ COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Create choreo.dev compatible non-root user with UID 10001
-RUN adduser -D -u 10001 -s /bin/sh appuser
+RUN useradd -u 10001 -m -s /bin/bash appuser
 
-# Create necessary directories and set permissions for non-root user
-RUN mkdir -p /app/backend/images/gallery /var/log/nginx /var/lib/nginx /run/nginx /var/cache/nginx /var/log/supervisor
-RUN chown -R appuser:appuser /app /var/log/nginx /var/lib/nginx /run/nginx /var/cache/nginx /var/log/supervisor
+# Set permissions for non-root user
+RUN chown -R appuser:appuser /app /var/log/nginx /var/lib/nginx /var/run/nginx /var/cache/nginx /var/log/supervisor
 
 # Expose non-privileged port for choreo.dev
 EXPOSE 8080
