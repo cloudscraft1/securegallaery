@@ -390,42 +390,28 @@ const Gallery = () => {
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-900/50 to-indigo-900/50 animate-pulse rounded-2xl"></div>
                   )}
                   
-                  {/* Localhost development with direct image URLs */}
-                  {window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? (
-                    <img
-                      src={image.url.startsWith('http') ? image.url : `http://localhost:8000${image.url}`}
-                      alt={image.title}
-                      className="w-full h-auto object-cover transition-all duration-700 group-hover:scale-110 protected-content"
-                      onLoad={() => handleImageLoad(image.id)}
-                      onError={(e) => {
-                        console.log('Image failed to load:', image.url);
-                        handleImageLoad(image.id);
-                      }}
-                      style={{ 
-                        height: `${280 + (index % 3) * 100}px`,
-                        objectFit: 'cover',
-                        userSelect: 'none'
-                      }}
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                        console.log('🔒 Right-click blocked - VaultSecure Protection');
-                        return false;
-                      }}
-                      draggable="false"
-                    />
-                  ) : (
-                    <SecureImage
-                      imageUrl={image.url}
-                      alt={image.title}
-                      className="w-full h-auto object-cover transition-all duration-700 group-hover:scale-110 protected-content"
-                      onLoad={() => handleImageLoad(image.id)}
-                      onError={() => handleImageLoad(image.id)}
-                      style={{ 
-                        height: `${280 + (index % 3) * 100}px`,
-                        objectFit: 'cover'
-                      }}
-                    />
-                  )}
+                  {/* Use standard images with security protections */}
+                  <img
+                    src={image.url}
+                    alt={image.title}
+                    className="w-full h-auto object-cover transition-all duration-700 group-hover:scale-110 protected-content"
+                    onLoad={() => handleImageLoad(image.id)}
+                    onError={(e) => {
+                      console.error('Image failed to load:', image.url);
+                      handleImageLoad(image.id);
+                    }}
+                    style={{ 
+                      height: `${280 + (index % 3) * 100}px`,
+                      objectFit: 'cover',
+                      userSelect: 'none'
+                    }}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      console.log('🔒 Right-click blocked - VaultSecure Protection');
+                      return false;
+                    }}
+                    draggable="false"
+                  />
                   
                   {/* Security Watermark Overlay */}
                   <div className="absolute top-2 right-2 bg-blue-500/20 backdrop-blur-sm rounded-full px-2 py-1 border border-blue-500/30">

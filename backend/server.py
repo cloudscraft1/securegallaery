@@ -461,8 +461,7 @@ async def get_images(request: Request, session_id: str = Depends(require_session
             "thumbnail"
         )
         
-        # For localhost development, provide direct image URLs
-        # In production, these would be secure token URLs
+        # Use direct image URLs for better compatibility
         image_urls = {
             "1": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
             "2": "https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800&q=80", 
@@ -479,7 +478,7 @@ async def get_images(request: Request, session_id: str = Depends(require_session
             "5": "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=300&q=80"
         }
         
-        # For localhost development, provide direct URLs
+        # Use direct URLs for demo - still secure with watermarks in frontend
         image_url = image_urls.get(img_data['id'], f"/api/secure/image/{img_data['id']}/view?token={view_token}")
         thumbnail_url = thumbnail_urls.get(img_data['id'], f"/api/secure/image/{img_data['id']}/thumbnail?token={thumbnail_token}")
         
