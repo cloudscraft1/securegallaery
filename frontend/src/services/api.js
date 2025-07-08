@@ -512,6 +512,21 @@ class VaultSecureAPI {
     console.warn(`🚨 VaultSecure: Suspicious activity detected - ${activity}`);
     // In production, you could send this to your backend for logging
   }
+
+  // Report errors to monitoring system
+  reportError(errorData) {
+    console.error('🚨 VaultSecure Error:', errorData);
+    // In production, you could send this to your backend for logging
+    try {
+      this.api.post('/security-violation', {
+        violation: `ERROR: ${errorData.source} - ${errorData.error}`,
+        timestamp: errorData.timestamp,
+        userAgent: navigator.userAgent
+      }).catch(() => {}); // Silent fail
+    } catch (e) {
+      // Silent fail
+    }
+  }
 }
 
 // Anti-tampering measures - but allow sessionId modification

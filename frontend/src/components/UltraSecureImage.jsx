@@ -281,21 +281,90 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
         setLoading(true);
         setError(false);
 
-        // Try secure image data from backend first
+        // Try to load image with multiple fallback strategies
         let imageData;
+        let loadingSuccess = false;
+        
+        // Strategy 1: Try secure image data from backend
         try {
+          console.log('Attempting secure image loading for:', imageUrl);
           imageData = await apiService.getSecureImageData(imageUrl);
-          if (!imageData.success) {
-            throw new Error('Secure method failed');
+          
+          if (imageData && imageData.success && imageData.imageData) {
+            console.log('Secure image data loaded successfully');
+            loadingSuccess = true;
+          } else {
+            throw new Error('Secure method returned invalid data');
           }
         } catch (secureError) {
-          console.warn('Secure image loading failed, using fallback:', secureError);
+          console.warn('Secure image loading failed, trying fallback strategies:', secureError);
           
-          // Fallback: Create a secure placeholder with watermarks
+          // Strategy 2: Try direct image loading for development
+          const isLocalhost = window.location.hostname === 'localhost' || 
+                             window.location.hostname === '127.0.0.1';
+          
+          if (isLocalhost) {
+            try {
+              console.log('Attempting direct image loading for localhost');
+              
+              // Get the image URLs from backend data
+              const imageUrls = {
+                "1": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
+                "2": "https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800&q=80", 
+                "3": "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80",
+                "4": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
+                "5": "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&q=80"
+              };
+              
+              // Extract image ID from the URL
+              const imageIdMatch = imageUrl.match(/\/image\/(\d+)\//);
+              const imageId = imageIdMatch ? imageIdMatch[1] : null;
+              
+              if (imageId && imageUrls[imageId]) {
+                const directImageUrl = imageUrls[imageId];
+                console.log('Using direct image URL:', directImageUrl);
+                
+                // Create a mock secure response
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                await new Promise((resolve, reject) => {
+                  img.onload = () => {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // Add development watermarks
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                    ctx.font = '20px Arial';
+                    ctx.fillText('VAULTSECURE DEVELOPMENT', 10, 30);
+                    
+                    const sessionId = apiService.sessionId?.substring(0, 8) || 'DEV';
+                    ctx.fillText(`Session: ${sessionId}`, 10, canvas.height - 20);
+                    
+                    resolve();
+                  };
+                  img.onerror = reject;
+                  img.src = directImageUrl;
+                });
+                
+                setLoading(false);
+                if (onLoad) onLoad();
+                activateUltraProtection();
+                return;
+              }
+            } catch (directError) {
+              console.warn('Direct image loading also failed:', directError);
+            }
+          }
+          
+          // Strategy 3: Create a secure placeholder with better messaging
+          console.log('Creating secure placeholder');
           const canvas = canvasRef.current;
           const ctx = canvas.getContext('2d');
           
-          // Create a secure placeholder
           canvas.width = 800;
           canvas.height = 600;
           
@@ -325,8 +394,6 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
           
           setLoading(false);
           if (onLoad) onLoad();
-          
-          // Still activate protection
           activateUltraProtection();
           return;
         }
