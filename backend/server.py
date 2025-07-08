@@ -140,47 +140,30 @@ def create_sample_images():
                 img = Image.new('RGB', (800, 600), color=sample["color"])
                 draw = ImageDraw.Draw(img)
                 
-                # Add text with better font handling
+                # Simple font handling - don't crash on font errors
                 try:
-                    # Try multiple font paths
-                    font_paths = [
-                        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
-                        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-                        "/usr/share/fonts/TTF/arial.ttf",
-                        "/System/Library/Fonts/Arial.ttf"
-                    ]
-                    
-                    font = None
-                    for font_path in font_paths:
-                        try:
-                            font = ImageFont.truetype(font_path, 36)
-                            break
-                        except:
-                            continue
-                    
-                    if font is None:
-                        font = ImageFont.load_default()
-                        
+                    font = ImageFont.load_default()
+                    logger.info(f"Using default font for {sample['filename']}")
                 except Exception as font_error:
                     logger.warning(f"Font loading error: {font_error}")
-                    font = ImageFont.load_default()
+                    font = None
                 
-                # Center the text
-                try:
-                    bbox = draw.textbbox((0, 0), sample["text"], font=font)
-                    text_width = bbox[2] - bbox[0]
-                    text_height = bbox[3] - bbox[1]
-                    x = (800 - text_width) // 2
-                    y = (600 - text_height) // 2
-                except:
-                    # Fallback positioning
-                    x, y = 200, 280
+                # Add text with simple positioning
+                x, y = 200, 280  # Center position
                 
-                draw.text((x, y), sample["text"], font=font, fill='white')
-                
-                # Add VaultSecure watermark
-                draw.text((10, 10), "VaultSecure Gallery", font=font, fill='white')
-                draw.text((10, 580), f"Protected Image {sample['filename']}", font=font, fill='rgba(255,255,255,0.7)')
+                if font:
+                    try:
+                        draw.text((x, y), sample["text"], font=font, fill='white')
+                        draw.text((10, 10), "VaultSecure Gallery", font=font, fill='white')
+                        draw.text((10, 580), f"Protected: {sample['filename']}", font=font, fill='white')
+                    except Exception as text_error:
+                        logger.warning(f"Text drawing error: {text_error}")
+                        # Draw simple rectangle as fallback
+                        draw.rectangle([100, 250, 700, 350], fill='white')
+                else:
+                    # No font available - draw rectangle
+                    draw.rectangle([100, 250, 700, 350], fill='white')
+                    draw.rectangle([10, 10, 200, 30], fill='white')
                 
                 # Save the image
                 img.save(IMAGES_DIR / sample["filename"])
@@ -188,9 +171,15 @@ def create_sample_images():
                 
             except Exception as e:
                 logger.error(f"Failed to create sample image {sample['filename']}: {e}")
+                # Continue with next image - don't crash
 
-# Initialize images on startup
-create_sample_images()
+# Initialize images on startup with error handling
+try:
+    create_sample_images()
+    logger.info("Sample images initialization completed successfully")
+except Exception as e:
+    logger.error(f"Error during sample image creation: {e}")
+    # Continue anyway - don't let this crash the server
 
 # Models
 class ImageMetadata(BaseModel):
@@ -528,6 +517,25 @@ async def test_connection():
         "message": "API connection successful",
         "timestamp": datetime.utcnow().isoformat()
     }
+
+@api_router.get("/debug")
+async def debug_status():
+    """Debug endpoint to check server status"""
+    try:
+        discovered_images = discover_images()
+        return {
+            "status": "ok",
+            "images_directory": str(IMAGES_DIR),
+            "images_count": len(discovered_images),
+            "images": [img["filename"] for img in discovered_images[:5]],
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }
 
 @api_router.post("/session", response_model=SessionResponse)
 async def create_session_endpoint(request: Request):
@@ -989,18 +997,33 @@ async def security_headers_middleware(request: Request, call_next):
 
 @app.on_event("startup")
 async def startup_event():
-    logger.info("VaultSecure API starting up with maximum security...")
-    logger.info(f"Images directory: {IMAGES_DIR}")
-    
-    # Discover existing images
-    discovered_images = discover_images()
-    logger.info(f"Discovered {len(discovered_images)} images in gallery:")
-    for img in discovered_images:
-        logger.info(f"  - {img['filename']} ({img['title']})")
-    
-    logger.info(f"Session timeout: {SESSION_TIMEOUT} seconds")
-    logger.info(f"Token expiry: {TOKEN_EXPIRY_MINUTES} minutes")
-    logger.info(f"Rate limit: {MAX_REQUESTS_PER_MINUTE} requests/minute")
+    try:
+        logger.info("VaultSecure API starting up with maximum security...")
+        logger.info(f"Images directory: {IMAGES_DIR}")
+        
+        # Ensure images directory exists
+        IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Images directory created/verified: {IMAGES_DIR}")
+        
+        # Discover existing images with error handling
+        try:
+            discovered_images = discover_images()
+            logger.info(f"Discovered {len(discovered_images)} images in gallery:")
+            for img in discovered_images:
+                logger.info(f"  - {img['filename']} ({img['title']})")
+        except Exception as e:
+            logger.error(f"Error discovering images: {e}")
+            discovered_images = []
+        
+        logger.info(f"Session timeout: {SESSION_TIMEOUT} seconds")
+        logger.info(f"Token expiry: {TOKEN_EXPIRY_MINUTES} minutes")
+        logger.info(f"Rate limit: {MAX_REQUESTS_PER_MINUTE} requests/minute")
+        logger.info("VaultSecure API startup completed successfully!")
+        
+    except Exception as e:
+        logger.error(f"Critical error during startup: {e}")
+        # Don't crash the server - log and continue
+        logger.info("VaultSecure API startup completed with warnings")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
@@ -1017,3 +1040,9 @@ async def health_check():
         "security_level": "maximum",
         "service": "VaultSecure"
     }
+
+# Main entry point for debugging
+if __name__ == "__main__":
+    import uvicorn
+    logger.info("Starting VaultSecure API in debug mode...")
+    uvicorn.run(app, host="0.0.0.0", port=8000)
