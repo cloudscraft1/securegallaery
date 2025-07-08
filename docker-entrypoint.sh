@@ -10,6 +10,11 @@ mkdir -p /app/backend/images/gallery
 mkdir -p /var/log/nginx
 mkdir -p /var/log/supervisor
 mkdir -p /run/nginx
+mkdir -p /tmp/client_temp
+mkdir -p /tmp/proxy_temp
+mkdir -p /tmp/fastcgi_temp
+mkdir -p /tmp/uwsgi_temp
+mkdir -p /tmp/scgi_temp
 
 # Set proper permissions for non-root user
 if [ "$(id -u)" != "0" ]; then
