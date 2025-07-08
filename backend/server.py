@@ -4,7 +4,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from dotenv import load_dotenv
-from motor.motor_asyncio import AsyncIOMotorClient
+# from motor.motor_asyncio import AsyncIOMotorClient  # Disabled for local development
 from pydantic import BaseModel, Field
 from typing import List, Optional
 import os
@@ -26,6 +26,13 @@ from urllib.parse import urlparse
 import asyncio
 from collections import defaultdict
 
+# Configure logging first
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
@@ -43,11 +50,12 @@ MAX_REQUESTS_PER_MINUTE = 60
 ALLOWED_DOMAINS = [
     "localhost:3000", 
     "127.0.0.1:3000", 
+    "securegallaery.onrender.com",
+    "*.onrender.com",
     "8527c513-d6d9-4747-96e7-345f06b75467.e1-eu-north-azure.choreoapps.dev",
     "c8d34c90-0819-4af7-aa7d-2a5f6dafa7f8.e1-eu-north-azure.choreoapps.dev",
     "*.e1-eu-north-azure.choreoapps.dev",
-    "*.choreoapps.dev",
-    "securegallaery.onrender.com"
+    "*.choreoapps.dev"
 ]
 
 # Create the main app
@@ -697,16 +705,18 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000", 
         "http://127.0.0.1:3000", 
+        "https://securegallaery.onrender.com",
+        "https://*.onrender.com",
         "https://5cfb91b9-9781-4651-ab88-c7db44f175d7.preview.emergentagent.com",
         "https://*.preview.emergentagent.com",
         "https://c8d34c90-0819-4af7-aa7d-2a5f6dafa7f8.e1-eu-north-azure.choreoapps.dev",
         "https://*.e1-eu-north-azure.choreoapps.dev",
-        "https://*.choreoapps.dev",
-        "https://securegallaery.onrender.com"
+        "https://*.choreoapps.dev"
     ],
     allow_methods=["GET", "POST", "DELETE", "OPTIONS", "PUT", "PATCH"],  # Add all methods
     allow_headers=["*"],  # Allow all headers for development
     expose_headers=["X-Security-Level", "X-Session-ID"]
+)
 )
 
 # Add trusted host middleware
@@ -725,12 +735,7 @@ app.add_middleware(
     ]
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Logging already configured above
 
 @app.middleware("http")
 async def security_headers_middleware(request: Request, call_next):
