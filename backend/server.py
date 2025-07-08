@@ -717,7 +717,6 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers for development
     expose_headers=["X-Security-Level", "X-Session-ID"]
 )
-)
 
 # Add trusted host middleware
 app.add_middleware(
@@ -726,12 +725,13 @@ app.add_middleware(
         "localhost", 
         "127.0.0.1", 
         "*.localhost", 
+        "securegallaery.onrender.com",
+        "*.onrender.com",
         "5cfb91b9-9781-4651-ab88-c7db44f175d7.preview.emergentagent.com",
         "*.preview.emergentagent.com",
         "c8d34c90-0819-4af7-aa7d-2a5f6dafa7f8.e1-eu-north-azure.choreoapps.dev",
         "*.e1-eu-north-azure.choreoapps.dev",
-        "*.choreoapps.dev",
-        "securegallaery.onrender.com"
+        "*.choreoapps.dev"
     ]
 )
 
