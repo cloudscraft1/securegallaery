@@ -48,6 +48,7 @@ const Gallery = () => {
 
   const initializeSecureGallery = async () => {
     try {
+      console.log('Gallery: Starting secure gallery initialization');
       setSessionStatus('connecting');
       
       // Add minimum loading time to show the beautiful loading screen
@@ -55,19 +56,24 @@ const Gallery = () => {
       const minLoadingTime = 4000; // 4 seconds minimum
       
       // Progressive loading steps with delays
+      console.log('Gallery: Waiting for initial delay');
       await new Promise(resolve => setTimeout(resolve, 800));
       
       // Initialize secure session
+      console.log('Gallery: Initializing secure session');
       await apiService.initializeSession();
       await new Promise(resolve => setTimeout(resolve, 600));
       
+      console.log('Gallery: Session initialized, updating status');
       setSessionStatus('connected');
       setSecurityLevel(apiService.getSecurityLevel());
       await new Promise(resolve => setTimeout(resolve, 800));
       
       // Fetch protected images
+      console.log('Gallery: Fetching protected images');
       const fetchedImages = await apiService.getImages();
-      console.log('Fetched images:', fetchedImages);
+      console.log('Gallery: Fetched images:', fetchedImages);
+      console.log('Gallery: Images count:', fetchedImages?.length || 0);
       setImages(fetchedImages);
       await new Promise(resolve => setTimeout(resolve, 600));
       
@@ -104,11 +110,13 @@ const Gallery = () => {
   };
 
   const handleImageLoad = (imageId) => {
+    console.log('Gallery: Image loaded successfully:', imageId);
     setImageLoading(prev => ({ ...prev, [imageId]: false }));
     
     // Protect the loaded image with advanced screenshot protection
     setTimeout(() => {
       const imageElements = document.querySelectorAll(`img[alt*="${images.find(img => img.id === imageId)?.title || ''}"]`);
+      console.log('Gallery: Protecting', imageElements.length, 'image elements');
       imageElements.forEach(img => {
         screenshotProtection.protectElement(img);
       });
@@ -116,6 +124,7 @@ const Gallery = () => {
   };
 
   const handleImageLoadStart = (imageId) => {
+    console.log('Gallery: Image load started for:', imageId);
     setImageLoading(prev => ({ ...prev, [imageId]: true }));
   };
 

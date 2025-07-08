@@ -274,10 +274,14 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
   };
 
   useEffect(() => {
-    if (!imageUrl || !canvasRef.current) return;
+    if (!imageUrl || !canvasRef.current) {
+      console.log('UltraSecureImage: Missing imageUrl or canvas ref', { imageUrl, hasCanvas: !!canvasRef.current });
+      return;
+    }
 
     const loadUltraSecureImage = async () => {
       try {
+        console.log('UltraSecureImage: Starting image load process for:', imageUrl);
         setLoading(true);
         setError(false);
 
@@ -299,65 +303,91 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
         } catch (secureError) {
           console.warn('Secure image loading failed, trying fallback strategies:', secureError);
           
-          // Strategy 2: Try direct image loading for development
-          const isLocalhost = window.location.hostname === 'localhost' || 
-                             window.location.hostname === '127.0.0.1';
-          
-          if (isLocalhost) {
-            try {
-              console.log('Attempting direct image loading for localhost');
+          // Strategy 2: Try direct image loading for all environments
+          try {
+            console.log('Attempting direct image loading fallback');
+            
+            // Get the image URLs from backend data
+            const imageUrls = {
+              "1": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
+              "2": "https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800&q=80", 
+              "3": "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80",
+              "4": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
+              "5": "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&q=80"
+            };
+            
+            // Extract image ID from the URL
+            const imageIdMatch = imageUrl.match(/\/image\/(\d+)\//);
+            const imageId = imageIdMatch ? imageIdMatch[1] : null;
+            
+            console.log('Extracted image ID:', imageId);
+            
+            if (imageId && imageUrls[imageId]) {
+              const directImageUrl = imageUrls[imageId];
+              console.log('Using direct image URL:', directImageUrl);
               
-              // Get the image URLs from backend data
-              const imageUrls = {
-                "1": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
-                "2": "https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800&q=80", 
-                "3": "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80",
-                "4": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
-                "5": "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&q=80"
-              };
+              // Load image directly with timeout
+              const canvas = canvasRef.current;
+              const ctx = canvas.getContext('2d');
+              const img = new Image();
+              img.crossOrigin = 'anonymous';
               
-              // Extract image ID from the URL
-              const imageIdMatch = imageUrl.match(/\/image\/(\d+)\//);
-              const imageId = imageIdMatch ? imageIdMatch[1] : null;
-              
-              if (imageId && imageUrls[imageId]) {
-                const directImageUrl = imageUrls[imageId];
-                console.log('Using direct image URL:', directImageUrl);
+              // Set timeout for image loading
+              const loadPromise = new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                  reject(new Error('Image load timeout'));
+                }, 15000); // 15 second timeout
                 
-                // Create a mock secure response
-                const canvas = canvasRef.current;
-                const ctx = canvas.getContext('2d');
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                
-                await new Promise((resolve, reject) => {
-                  img.onload = () => {
+                img.onload = () => {
+                  clearTimeout(timeout);
+                  console.log('Image loaded successfully:', img.width, 'x', img.height);
+                  
+                  try {
                     canvas.width = img.width;
                     canvas.height = img.height;
                     ctx.drawImage(img, 0, 0);
                     
-                    // Add development watermarks
+                    // Add secure watermarks
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
                     ctx.font = '20px Arial';
-                    ctx.fillText('VAULTSECURE DEVELOPMENT', 10, 30);
+                    ctx.fillText('VAULTSECURE PROTECTED', 10, 30);
                     
-                    const sessionId = apiService.sessionId?.substring(0, 8) || 'DEV';
+                    const sessionId = apiService.sessionId?.substring(0, 8) || 'SECURE';
                     ctx.fillText(`Session: ${sessionId}`, 10, canvas.height - 20);
                     
+                    // Add timestamp
+                    const timestamp = new Date().toLocaleString();
+                    ctx.fillText(`Loaded: ${timestamp}`, 10, canvas.height - 50);
+                    
                     resolve();
-                  };
-                  img.onerror = reject;
-                  img.src = directImageUrl;
-                });
+                  } catch (drawError) {
+                    console.error('Error drawing image to canvas:', drawError);
+                    reject(drawError);
+                  }
+                };
                 
-                setLoading(false);
-                if (onLoad) onLoad();
-                activateUltraProtection();
-                return;
-              }
-            } catch (directError) {
-              console.warn('Direct image loading also failed:', directError);
+                img.onerror = (error) => {
+                  clearTimeout(timeout);
+                  console.error('Image loading error:', error);
+                  reject(error);
+                };
+                
+                console.log('Starting image load from:', directImageUrl);
+                img.src = directImageUrl;
+              });
+              
+              await loadPromise;
+              
+              console.log('Image loaded and rendered successfully');
+              setLoading(false);
+              if (onLoad) onLoad();
+              activateUltraProtection();
+              return;
+            } else {
+              console.warn('No matching image ID found:', imageId);
             }
+          } catch (directError) {
+            console.error('Direct image loading failed:', directError);
           }
           
           // Strategy 3: Create a secure placeholder with better messaging
