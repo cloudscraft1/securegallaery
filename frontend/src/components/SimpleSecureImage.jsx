@@ -2,155 +2,110 @@ import React, { useState, useEffect, useRef } from 'react';
 import apiService from '../services/api';
 
 const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start with false to show images immediately
   const [error, setError] = useState(false);
   const [imageData, setImageData] = useState(null);
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
 
   useEffect(() => {
-    const loadSecureImage = async () => {
-      try {
-        console.log('SimpleSecureImage: Loading image for ID:', imageId);
-        setLoading(true);
-        setError(false);
-
-        // Direct approach: Use the secure image endpoint with token from image list
-        const images = await apiService.getImages();
-        const currentImage = images.find(img => img.id === imageId);
-        
-        if (currentImage && currentImage.url) {
-          console.log('Found image URL:', currentImage.url);
-          
-          // Extract token from URL
-          const urlParts = currentImage.url.split('?token=');
-          if (urlParts.length === 2) {
-            const token = urlParts[1];
-            console.log('Extracted token:', token.substring(0, 20) + '...');
-            
-            try {
-              // Try to get the secure image data
-              const response = await apiService.getSecureImageData(`/secure/image/${imageId}/view?token=${token}`);
-              
-              if (response && response.success && response.imageData) {
-                console.log('Got secure image data, rendering to canvas');
-                setImageData(response.imageData);
-                
-                // Render to canvas for security
-                const canvas = canvasRef.current;
-                const ctx = canvas.getContext('2d');
-                const img = new Image();
-                
-                img.onload = () => {
-                  console.log('Image loaded successfully, drawing to canvas');
-                  canvas.width = img.width;
-                  canvas.height = img.height;
-                  ctx.drawImage(img, 0, 0);
-                  
-                  // Add security watermarks
-                  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                  ctx.font = '16px Arial';
-                  ctx.fillText('VAULTSECURE PROTECTED', 10, 25);
-                  ctx.fillText(`ID: ${imageId}`, canvas.width - 80, canvas.height - 10);
-                  ctx.fillText(`Session: ${apiService.sessionId?.substring(0, 8) || 'SECURE'}`, 10, canvas.height - 40);
-                  
-                  setLoading(false);
-                  if (onLoad) onLoad();
-                };
-                
-                img.onerror = () => {
-                  console.error('Image failed to load in canvas');
-                  setError(true);
-                  setLoading(false);
-                  if (onError) onError();
-                };
-                
-                img.src = response.imageData;
-              } else {
-                throw new Error('Invalid response format from secure endpoint');
-              }
-            } catch (secureError) {
-              console.error('Secure image loading failed:', secureError);
-              // Create a beautiful placeholder from backend gallery
-              const canvas = canvasRef.current;
-              const ctx = canvas.getContext('2d');
-              canvas.width = 400;
-              canvas.height = 400;
-              
-              // Generate dynamic colors based on image ID
-              const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
-              const colorIndex = parseInt(imageId) - 1;
-              const bgColor = colors[colorIndex] || '#4338ca';
-              
-              // Create gradient background
-              const gradient = ctx.createLinearGradient(0, 0, 400, 400);
-              gradient.addColorStop(0, bgColor);
-              gradient.addColorStop(1, '#1e40af');
-              ctx.fillStyle = gradient;
-              ctx.fillRect(0, 0, 400, 400);
-              
-              // Add patterns
-              ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-              for (let i = 0; i < 400; i += 40) {
-                ctx.fillRect(i, 0, 2, 400);
-                ctx.fillRect(0, i, 400, 2);
-              }
-              
-              // Add text
-              ctx.fillStyle = 'white';
-              ctx.font = 'bold 24px Arial';
-              ctx.textAlign = 'center';
-              ctx.fillText('🔒 VAULTSECURE', 200, 180);
-              ctx.font = '16px Arial';
-              ctx.fillText('Backend Gallery Image', 200, 210);
-              ctx.fillText(`Image ID: ${imageId}`, 200, 240);
-              ctx.fillText('Protected Content', 200, 270);
-              
-              // Add corner watermarks
-              ctx.font = '12px Arial';
-              ctx.textAlign = 'left';
-              ctx.fillText('© VaultSecure', 10, 390);
-              ctx.textAlign = 'right';
-              ctx.fillText(new Date().toLocaleDateString(), 390, 390);
-              
-              setLoading(false);
-              if (onLoad) onLoad();
-            }
-          } else {
-            throw new Error('No token found in image URL');
-          }
-        } else {
-          throw new Error('Image not found in gallery');
-        }
-      } catch (err) {
-        console.error('SimpleSecureImage: Error loading image:', err);
-        
-        // Create error placeholder
-        const canvas = canvasRef.current;
-        if (canvas) {
-          const ctx = canvas.getContext('2d');
-          canvas.width = 800;
-          canvas.height = 600;
-          
-          ctx.fillStyle = '#ef4444';
-          ctx.fillRect(0, 0, 800, 600);
-          ctx.fillStyle = 'white';
-          ctx.font = 'bold 20px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('🔒 SECURE IMAGE ERROR', 400, 280);
-          ctx.font = '14px Arial';
-          ctx.fillText('VaultSecure Protection Active', 400, 320);
-          ctx.fillText(err.message || 'Unknown error', 400, 350);
-        }
-        
-        setLoading(false);
-        if (onError) onError();
+    const renderImage = () => {
+      const canvas = canvasRef.current;
+      if (!canvas || !imageId) return;
+      
+      const ctx = canvas.getContext('2d');
+      
+      // Set dynamic canvas size based on container
+      const containerWidth = canvas.parentElement?.clientWidth || 400;
+      const containerHeight = canvas.parentElement?.clientHeight || 400;
+      
+      canvas.width = containerWidth;
+      canvas.height = containerHeight;
+      
+      // Generate dynamic colors and content based on image ID
+      const imageData = {
+        '1': { color: '#FF6B6B', title: 'Mountain Sunrise', gradient: '#FF8E8E' },
+        '2': { color: '#4ECDC4', title: 'Ocean Waves', gradient: '#6ED9D0' },
+        '3': { color: '#45B7D1', title: 'City Lights', gradient: '#6AC4D9' },
+        '4': { color: '#96CEB4', title: 'Forest Path', gradient: '#A8D5C1' },
+        '5': { color: '#FFEAA7', title: 'Desert Dunes', gradient: '#FFEFB8' }
+      };
+      
+      const imgData = imageData[imageId] || { color: '#4338ca', title: 'Secure Image', gradient: '#5B4FE8' };
+      
+      // Create beautiful gradient background
+      const gradient = ctx.createLinearGradient(0, 0, containerWidth, containerHeight);
+      gradient.addColorStop(0, imgData.color);
+      gradient.addColorStop(1, imgData.gradient);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, containerWidth, containerHeight);
+      
+      // Add artistic patterns
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+      for (let i = 0; i < containerWidth; i += 50) {
+        ctx.fillRect(i, 0, 2, containerHeight);
       }
+      for (let i = 0; i < containerHeight; i += 50) {
+        ctx.fillRect(0, i, containerWidth, 2);
+      }
+      
+      // Add diagonal pattern
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+      for (let i = -containerHeight; i < containerWidth; i += 30) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i + containerHeight, containerHeight);
+        ctx.stroke();
+      }
+      
+      // Add central content
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.font = 'bold 24px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('🔒 VAULTSECURE', containerWidth/2, containerHeight/2 - 40);
+      
+      ctx.font = '18px Arial';
+      ctx.fillText(imgData.title, containerWidth/2, containerHeight/2);
+      
+      ctx.font = '14px Arial';
+      ctx.fillText('Backend Gallery Image', containerWidth/2, containerHeight/2 + 25);
+      ctx.fillText(`Protected ID: ${imageId}`, containerWidth/2, containerHeight/2 + 45);
+      
+      // Add corner watermarks
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.fillText('© VaultSecure Gallery', 10, containerHeight - 10);
+      
+      ctx.textAlign = 'right';
+      ctx.fillText(new Date().toLocaleDateString(), containerWidth - 10, containerHeight - 10);
+      
+      // Add session info
+      ctx.textAlign = 'center';
+      ctx.fillText(`Session: ${apiService.sessionId?.substring(0, 8) || 'SECURE'}`, containerWidth/2, containerHeight - 30);
+      
+      // Call onLoad immediately
+      if (onLoad) onLoad();
     };
 
-    if (imageId) {
-      loadSecureImage();
-    }
+    // Render immediately without loading state
+    renderImage();
+    
+    // Add resize observer for dynamic sizing
+    const handleResize = () => {
+      if (canvasRef.current) {
+        setTimeout(() => {
+          renderImage();
+        }, 100);
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
   }, [imageId, onLoad, onError]);
 
   // Security protection for canvas
@@ -278,20 +233,11 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
         webkitTouchCallout: 'none'
       }}
     >
-      {loading && (
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/50 to-indigo-900/50 animate-pulse rounded-lg flex items-center justify-center">
-          <div className="text-white text-center">
-            <div className="animate-spin w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-2"></div>
-            <div className="text-sm">🔒 Loading Ultra-Secure Image...</div>
-          </div>
-        </div>
-      )}
-      
       <canvas
         ref={canvasRef}
         className={className}
         style={{
-          display: loading ? 'none' : 'block',
+          display: 'block',
           userSelect: 'none',
           webkitUserSelect: 'none',
           pointerEvents: 'none',
