@@ -4,7 +4,6 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from dotenv import load_dotenv
-# from motor.motor_asyncio import AsyncIOMotorClient  # Disabled for local development
 from pydantic import BaseModel, Field
 from typing import List, Optional
 import os
@@ -37,11 +36,7 @@ logger = logging.getLogger(__name__)
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection - disabled for local development
-# For local development, we'll use in-memory storage
-# mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
-# client = AsyncIOMotorClient(mongo_url)
-# db = client[os.environ.get('DB_NAME', 'test_database')]
+# Using in-memory storage for simplicity
 
 # Security constants
 SECRET_KEY = secrets.token_urlsafe(32)
@@ -1027,7 +1022,6 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
-    # client.close()  # Disabled for local development
     logger.info("VaultSecure API shutting down...")
 
 # Health check endpoint

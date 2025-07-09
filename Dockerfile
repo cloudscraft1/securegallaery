@@ -79,7 +79,10 @@ RUN mkdir -p /var/cache/nginx
 # Copy configuration files
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY docker-entrypoint.sh /usr/local/bin/
+
+# Create entrypoint script with Unix line endings
+RUN printf '#!/bin/sh\n\n# VaultSecure Gallery - Production Docker Entrypoint\nset -e\n\necho "🚀 Starting VaultSecure Gallery..."\n\n# Create necessary directories\nmkdir -p /app/backend/images/gallery\nmkdir -p /var/log/nginx\nmkdir -p /var/log/supervisor\nmkdir -p /var/run/nginx\nmkdir -p /tmp/client_temp\nmkdir -p /tmp/proxy_temp\nmkdir -p /tmp/fastcgi_temp\nmkdir -p /tmp/uwsgi_temp\nmkdir -p /tmp/scgi_temp\n\n# Set proper permissions for non-root user\nif [ "$(id -u)" != "0" ]; then\n    echo "Running as non-root user (UID: $(id -u))"\n    # Ensure directories are accessible\n    chmod 755 /app/backend/images/gallery 2>/dev/null || true\n    chmod 755 /var/log/nginx 2>/dev/null || true\n    chmod 755 /var/log/supervisor 2>/dev/null || true\n    chmod 755 /var/run/nginx 2>/dev/null || true\nelse\n    echo "Running as root user"\nfi\n\n# Start supervisor which manages both nginx and the FastAPI backend\necho "🛡️ Starting VaultSecure services..."\nexec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf -n\n' > /usr/local/bin/docker-entrypoint.sh
+
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Create choreo.dev compatible non-root user with UID 10001

@@ -11,23 +11,19 @@ services:
     image: secure-gallery:latest
     container_name: secure-gallery-app
     ports:
-      - "80:80"
+      - "80:8080"
       - "443:443"  # For future HTTPS support
     environment:
       - NODE_ENV=production
       - PYTHONPATH=/app/backend
-      - MONGO_URL=mongodb://mongo:27017
-      - DB_NAME=secure_gallery
     volumes:
       # Persist image uploads
       - gallery_images:/app/backend/images/gallery
       # Persist logs
       - gallery_logs:/var/log
-    depends_on:
-      - mongo
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -35,45 +31,6 @@ services:
     networks:
       - gallery-network
 
-  # MongoDB database
-  mongo:
-    image: mongo:7-jammy
-    container_name: secure-gallery-mongo
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=secure123
-      - MONGO_INITDB_DATABASE=secure_gallery
-    volumes:
-      - mongo_data:/data/db
-      - mongo_config:/data/configdb
-    ports:
-      - "27017:27017"  # Expose for development (remove in production)
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - gallery-network
-
-  # Redis for session management (optional)
-  redis:
-    image: redis:7-alpine
-    container_name: secure-gallery-redis
-    command: redis-server --appendonly yes --requirepass secure123
-    volumes:
-      - redis_data:/data
-    ports:
-      - "6379:6379"  # Expose for development (remove in production)
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - gallery-network
 
   # Nginx reverse proxy (if you want to separate it)
   # nginx-proxy:
@@ -92,12 +49,6 @@ services:
   #     - gallery-network
 
 volumes:
-  mongo_data:
-    driver: local
-  mongo_config:
-    driver: local
-  redis_data:
-    driver: local
   gallery_images:
     driver: local
   gallery_logs:
