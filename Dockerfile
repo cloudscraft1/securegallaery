@@ -95,12 +95,17 @@ RUN useradd -u 10001 -m -s /bin/bash appuser
 # Set permissions for non-root user
 RUN chown -R appuser:appuser /app /var/log/nginx /var/lib/nginx /var/run/nginx /var/cache/nginx /var/log/supervisor
 
-# Expose non-privileged port for choreo.dev
+# Expose port 8080 for nginx (main entry point)
 EXPOSE 8080
 
 # Health check on non-privileged port
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8080/health || exit 1
+
+# Set environment variables for proper port configuration
+ENV PORT=8080
+ENV NGINX_PORT=8080
+ENV BACKEND_PORT=8000
 
 # Switch to non-root user
 USER 10001

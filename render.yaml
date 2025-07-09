@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: vaultsecure-gallery
+    env: docker
+    repo: https://github.com/your-repo/secure-gallery.git
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PYTHONPATH
+        value: /app
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: PORT
+        value: "8080"
+    buildCommand: ""
+    startCommand: ""
+    healthCheckPath: /health
+    numInstances: 1
+    scaling:
+      minInstances: 1
+      maxInstances: 1
+      targetMemoryPercent: 80
+      targetCPUPercent: 80
+    disk:
+      name: vaultsecure-disk
+      mountPath: /app/backend/images
+      sizeGB: 1

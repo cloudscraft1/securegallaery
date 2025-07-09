@@ -53,7 +53,7 @@ MAX_REQUESTS_PER_MINUTE = 60
 ALLOWED_DOMAINS = [
     "localhost:3000", 
     "127.0.0.1:3000", 
-    "securegallaery.onrender.com",
+    "securegallery.onrender.com",
     "*.onrender.com",
     "8527c513-d6d9-4747-96e7-345f06b75467.e1-eu-north-azure.choreoapps.dev",
     "c8d34c90-0819-4af7-aa7d-2a5f6dafa7f8.e1-eu-north-azure.choreoapps.dev",
@@ -953,7 +953,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000", 
         "http://127.0.0.1:3000", 
-        "https://securegallaery.onrender.com",
+        "https://securegallery.onrender.com",
         "https://*.onrender.com",
         "https://5cfb91b9-9781-4651-ab88-c7db44f175d7.preview.emergentagent.com",
         "https://*.preview.emergentagent.com",
@@ -973,7 +973,7 @@ app.add_middleware(
         "localhost", 
         "127.0.0.1", 
         "*.localhost", 
-        "securegallaery.onrender.com",
+        "securegallery.onrender.com",
         "*.onrender.com",
         "5cfb91b9-9781-4651-ab88-c7db44f175d7.preview.emergentagent.com",
         "*.preview.emergentagent.com",
