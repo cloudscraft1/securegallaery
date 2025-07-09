@@ -29,6 +29,9 @@ class VaultSecureAPI {
   constructor() {
     this.sessionId = null;
     this.securityLevel = 'maximum';
+    this.tokenCache = new Map(); // Cache for image tokens
+    this.tokenRefreshPromise = null; // Prevent multiple refresh calls
+    this.refreshInterval = null; // Auto-refresh interval
     this.api = axios.create({
       baseURL: API_BASE,
       timeout: 15000,
@@ -63,9 +66,34 @@ class VaultSecureAPI {
       },
       async (error) => {
         if (error.response?.status === 401) {
-          // Session expired, try to create new session
+          console.log('Token expired, refreshing tokens and retrying...');
+          
+          // Check if it's a token-related error
+          if (error.config?.url?.includes('/secure/image/')) {
+            try {
+              // Try to refresh tokens first
+              await this.refreshTokens();
+              
+              // Update the request URL with new token
+              const imageId = this.extractImageIdFromUrl(error.config.url);
+              const isView = error.config.url.includes('/view');
+              const cachedToken = this.tokenCache.get(imageId);
+              
+              if (cachedToken) {
+                const newToken = isView ? cachedToken.view_token : cachedToken.thumbnail_token;
+                const newUrl = error.config.url.replace(/token=[^&]*/, `token=${newToken}`);
+                error.config.url = newUrl;
+                
+                // Retry with new token
+                return this.api.request(error.config);
+              }
+            } catch (refreshError) {
+              console.warn('Token refresh failed, creating new session:', refreshError);
+            }
+          }
+          
+          // Fallback to creating new session
           await this.createSession();
-          // Retry the original request
           return this.api.request(error.config);
         }
         
@@ -74,7 +102,30 @@ class VaultSecureAPI {
         }
         
         if (error.response?.status === 403) {
-          throw new Error('Access denied. Security validation failed.');
+          console.log('Access denied, refreshing tokens and retrying...');
+          try {
+            await this.refreshTokens();
+            
+            // Update token in URL if it's an image request
+            if (error.config?.url?.includes('/secure/image/')) {
+              const imageId = this.extractImageIdFromUrl(error.config.url);
+              const isView = error.config.url.includes('/view');
+              const cachedToken = this.tokenCache.get(imageId);
+              
+              if (cachedToken) {
+                const newToken = isView ? cachedToken.view_token : cachedToken.thumbnail_token;
+                const newUrl = error.config.url.replace(/token=[^&]*/, `token=${newToken}`);
+                error.config.url = newUrl;
+                
+                return this.api.request(error.config);
+              }
+            }
+          } catch (refreshError) {
+            console.warn('Token refresh failed, creating new session:', refreshError);
+            await this.createSession();
+          }
+          
+          return this.api.request(error.config);
         }
         
         return Promise.reject(error);
@@ -306,6 +357,9 @@ class VaultSecureAPI {
       localStorage.setItem('vaultsecure_session', this.sessionId);
       localStorage.setItem('vaultsecure_expires', response.data.expires_at);
       
+      // Start token refresh scheduling
+      this.scheduleTokenRefresh();
+      
       return response.data;
     } catch (error) {
       console.error('Failed to create secure session:', {
@@ -338,6 +392,73 @@ class VaultSecureAPI {
     }
   }
 
+  async refreshTokens() {
+    if (!this.tokenRefreshPromise) {
+      this.tokenRefreshPromise = new Promise(async (resolve, reject) => {
+        try {
+          const response = await this.api.post('/tokens/refresh');
+          this.tokenRefreshPromise = null;
+          
+          if (response.data && response.data.tokens) {
+            Object.entries(response.data.tokens).forEach(([imageId, tokens]) => {
+              this.tokenCache.set(imageId, tokens);
+            });
+            console.log('Tokens refreshed successfully for all images');
+            
+            // Schedule next refresh (refresh every 5 hours, tokens expire in 6 hours)
+            this.scheduleTokenRefresh();
+          }
+          resolve(response.data);
+        } catch (error) {
+          this.tokenRefreshPromise = null;
+          console.error('Failed to refresh tokens:', error);
+          reject(error);
+        }
+      });
+    }
+    return this.tokenRefreshPromise;
+  }
+
+  scheduleTokenRefresh() {
+    // Clear existing interval
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+    
+    // Schedule refresh every 5 hours (tokens expire in 6 hours)
+    this.refreshInterval = setInterval(() => {
+      console.log('Auto-refreshing tokens...');
+      this.refreshTokens().catch(error => {
+        console.warn('Auto token refresh failed:', error);
+      });
+    }, 5 * 60 * 60 * 1000); // 5 hours
+  }
+
+  stopTokenRefresh() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
+    }
+  }
+
+  extractImageIdFromUrl(url) {
+    const match = url.match(/\/secure\/image\/([^\/]+)/);
+    return match ? match[1] : null;
+  }
+
+  cacheTokensFromUrls(imageId, viewUrl, thumbnailUrl) {
+    const viewToken = viewUrl.match(/token=([^&]+)/)?.[1];
+    const thumbnailToken = thumbnailUrl.match(/token=([^&]+)/)?.[1];
+    if (viewToken && thumbnailToken) {
+      this.tokenCache.set(imageId, {
+        view_token: viewToken,
+        thumbnail_token: thumbnailToken,
+        view_url: viewUrl,
+        thumbnail_url: thumbnailUrl
+      });
+    }
+  }
+
   async initializeSession() {
     // Check for existing session
     const storedSession = localStorage.getItem('vaultsecure_session');
@@ -352,6 +473,8 @@ class VaultSecureAPI {
         try {
           await this.api.get('/session/validate');
           console.log('Existing session validated successfully');
+          // Start token refresh scheduling for existing session
+          this.scheduleTokenRefresh();
           return true;
         } catch (error) {
           console.warn('Stored session validation failed:', error.message);
@@ -399,11 +522,36 @@ class VaultSecureAPI {
   async getImages() {
     try {
       const response = await this.api.get('/images');
+      
+      // Cache tokens from image URLs
+      if (response.data && Array.isArray(response.data)) {
+        response.data.forEach(image => {
+          this.cacheTokensFromUrls(image.id, image.url, image.thumbnail_url);
+        });
+      }
+      
       return response.data;
     } catch (error) {
       console.error('Failed to fetch protected images:', error);
       throw error;
     }
+  }
+
+  // Update image URLs with fresh tokens from cache
+  updateImageUrlsWithFreshTokens(images) {
+    if (!Array.isArray(images)) return images;
+    
+    return images.map(image => {
+      const cachedTokens = this.tokenCache.get(image.id);
+      if (cachedTokens) {
+        return {
+          ...image,
+          url: cachedTokens.view_url,
+          thumbnail_url: cachedTokens.thumbnail_url
+        };
+      }
+      return image;
+    });
   }
 
   async likeImage(imageId) {
@@ -428,8 +576,10 @@ class VaultSecureAPI {
 
   async logout() {
     try {
+      this.stopTokenRefresh();
       await this.api.delete('/session');
       this.clearSession();
+      this.tokenCache.clear();
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -442,8 +592,10 @@ class VaultSecureAPI {
       console.log('Session ID:', this.sessionId);
       console.log('API Base:', this.api.defaults.baseURL);
       
-      // Extract the path from the URL if it's a full URL
+      // Handle tokenized URLs properly
       let requestUrl = imageUrl;
+      
+      // If it's a full URL, extract the path and query
       if (imageUrl.startsWith('http')) {
         const url = new URL(imageUrl);
         requestUrl = url.pathname + url.search;
@@ -455,13 +607,22 @@ class VaultSecureAPI {
       }
       
       console.log('Making request to:', requestUrl);
-      const response = await this.api.get(requestUrl);
+      
+      // Make the request using axios directly with the full URL
+      const response = await axios.get(`${this.api.defaults.baseURL}${requestUrl}`, {
+        headers: {
+          'X-Session-ID': this.sessionId,
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-VaultSecure-Client': 'web-app'
+        },
+        timeout: 15000
+      });
+      
       console.log('Secure image response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Failed to fetch secure image data:', {
         url: imageUrl,
-        requestUrl,
         error: error.message,
         response: error.response?.data,
         status: error.response?.status
