@@ -184,8 +184,9 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
     container.addEventListener('selectstart', handleSelectStart);
     document.addEventListener('keydown', handleKeyDown);
     
-    const devToolsInterval = setInterval(detectDevTools, 1000);
+    // const devToolsInterval = setInterval(detectDevTools, 1000); // Disabled for debugging
     const cleanupScreenshot = detectScreenshot();
+    console.log('SimpleSecureImage: Security protections activated for image', imageId);
 
     // Disable canvas data extraction
     const originalToDataURL = canvas.toDataURL;
@@ -199,7 +200,7 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
       container.removeEventListener('dragstart', handleDragStart);
       container.removeEventListener('selectstart', handleSelectStart);
       document.removeEventListener('keydown', handleKeyDown);
-      clearInterval(devToolsInterval);
+      // clearInterval(devToolsInterval); // Disabled for debugging
       cleanupScreenshot();
       canvas.toDataURL = originalToDataURL;
     };

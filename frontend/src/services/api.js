@@ -110,39 +110,28 @@ class VaultSecureAPI {
       }
     });
 
-    // 3. Advanced developer tools detection
+    // 3. Advanced developer tools detection (disabled for debugging)
     let devtoolsOpen = false;
     const checkDevTools = () => {
-      const threshold = 160;
+      const threshold = 500; // Increased threshold to reduce false positives
       const heightDiff = window.outerHeight - window.innerHeight;
       const widthDiff = window.outerWidth - window.innerWidth;
       
       if (heightDiff > threshold || widthDiff > threshold) {
         if (!devtoolsOpen) {
           devtoolsOpen = true;
-          this.reportSuspiciousActivity('Developer tools detected');
-          // Blur all protected content
-          document.querySelectorAll('.protected-content').forEach(el => {
-            el.style.filter = 'blur(20px)';
-            el.style.pointerEvents = 'none';
-          });
-          
-          // Show warning
-          this.showSecurityWarning('🚨 Developer Tools Detected - Content Protected');
+          console.warn('Developer tools may be detected');
+          // Don't blur content during debugging
+          // this.reportSuspiciousActivity('Developer tools detected');
         }
       } else {
         if (devtoolsOpen) {
           devtoolsOpen = false;
-          // Restore content
-          document.querySelectorAll('.protected-content').forEach(el => {
-            el.style.filter = 'none';
-            el.style.pointerEvents = 'auto';
-          });
         }
       }
     };
     
-    setInterval(checkDevTools, 500);
+    // setInterval(checkDevTools, 500); // Disabled for debugging
 
     // 4. Detect and block screenshot attempts
     document.addEventListener('keyup', (e) => {

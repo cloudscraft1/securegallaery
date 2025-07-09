@@ -263,9 +263,9 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
       };
     };
 
-    // Activate all protection methods
+    // Activate all protection methods (temporarily disabled for debugging)
     detectScreenshot();
-    detectDevTools();
+    // detectDevTools(); // Disabled to prevent false positives
     protectDOM();
     protectKeyboard();
     protectNetwork();
