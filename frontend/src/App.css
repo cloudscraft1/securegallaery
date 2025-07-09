@@ -92,10 +92,20 @@
 .gallery-item:nth-child(11) { height: 370px; }
 .gallery-item:nth-child(12) { height: 330px; }
 
-/* Continue pattern for more items */
-.gallery-item:nth-child(n+13) {
-    height: calc(300px + (var(--item-index, 0) % 5) * 30px);
-}
+/* Continue pattern for more items - use fixed heights instead of calc */
+.gallery-item:nth-child(13n+1) { height: 300px; }
+.gallery-item:nth-child(13n+2) { height: 380px; }
+.gallery-item:nth-child(13n+3) { height: 340px; }
+.gallery-item:nth-child(13n+4) { height: 420px; }
+.gallery-item:nth-child(13n+5) { height: 360px; }
+.gallery-item:nth-child(13n+6) { height: 390px; }
+.gallery-item:nth-child(13n+7) { height: 330px; }
+.gallery-item:nth-child(13n+8) { height: 410px; }
+.gallery-item:nth-child(13n+9) { height: 350px; }
+.gallery-item:nth-child(13n+10) { height: 370px; }
+.gallery-item:nth-child(13n+11) { height: 400px; }
+.gallery-item:nth-child(13n+12) { height: 320px; }
+.gallery-item:nth-child(13n+13) { height: 440px; }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {

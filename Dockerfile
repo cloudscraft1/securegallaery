@@ -10,7 +10,7 @@ ENV REACT_APP_BACKEND_URL=""
 ENV GENERATE_SOURCEMAP=false
 ENV DISABLE_ESLINT_PLUGIN=true
 ENV SKIP_PREFLIGHT_CHECK=true
-ENV CI=true
+ENV CI=false
 ENV INLINE_RUNTIME_CHUNK=false
 
 # Copy package files first for better caching
