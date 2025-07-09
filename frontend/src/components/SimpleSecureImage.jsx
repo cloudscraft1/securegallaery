@@ -15,45 +15,114 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
         setLoading(true);
         setError(false);
 
-        // Get the secure image data from API
-        const response = await apiService.getSecureImageData(`/api/secure/image/${imageId}/view`);
+        // Direct approach: Use the secure image endpoint with token from image list
+        const images = await apiService.getImages();
+        const currentImage = images.find(img => img.id === imageId);
         
-        if (response && response.success && response.imageData) {
-          setImageData(response.imageData);
+        if (currentImage && currentImage.url) {
+          console.log('Found image URL:', currentImage.url);
           
-          // Render to canvas for security
-          const canvas = canvasRef.current;
-          const ctx = canvas.getContext('2d');
-          const img = new Image();
-          
-          img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
+          // Extract token from URL
+          const urlParts = currentImage.url.split('?token=');
+          if (urlParts.length === 2) {
+            const token = urlParts[1];
+            console.log('Extracted token:', token.substring(0, 20) + '...');
             
-            // Add security watermarks
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-            ctx.font = '16px Arial';
-            ctx.fillText('VAULTSECURE PROTECTED', 10, 25);
-            ctx.fillText(`ID: ${imageId}`, canvas.width - 80, canvas.height - 10);
-            
-            setLoading(false);
-            if (onLoad) onLoad();
-          };
-          
-          img.onerror = () => {
-            setError(true);
-            setLoading(false);
-            if (onError) onError();
-          };
-          
-          img.src = response.imageData;
+            try {
+              // Try to get the secure image data
+              const response = await apiService.getSecureImageData(`/secure/image/${imageId}/view?token=${token}`);
+              
+              if (response && response.success && response.imageData) {
+                console.log('Got secure image data, rendering to canvas');
+                setImageData(response.imageData);
+                
+                // Render to canvas for security
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                img.onload = () => {
+                  console.log('Image loaded successfully, drawing to canvas');
+                  canvas.width = img.width;
+                  canvas.height = img.height;
+                  ctx.drawImage(img, 0, 0);
+                  
+                  // Add security watermarks
+                  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                  ctx.font = '16px Arial';
+                  ctx.fillText('VAULTSECURE PROTECTED', 10, 25);
+                  ctx.fillText(`ID: ${imageId}`, canvas.width - 80, canvas.height - 10);
+                  ctx.fillText(`Session: ${apiService.sessionId?.substring(0, 8) || 'SECURE'}`, 10, canvas.height - 40);
+                  
+                  setLoading(false);
+                  if (onLoad) onLoad();
+                };
+                
+                img.onerror = () => {
+                  console.error('Image failed to load in canvas');
+                  setError(true);
+                  setLoading(false);
+                  if (onError) onError();
+                };
+                
+                img.src = response.imageData;
+              } else {
+                throw new Error('Invalid response format from secure endpoint');
+              }
+            } catch (secureError) {
+              console.error('Secure image loading failed:', secureError);
+              // If secure loading fails, create a placeholder showing the error
+              const canvas = canvasRef.current;
+              const ctx = canvas.getContext('2d');
+              canvas.width = 800;
+              canvas.height = 600;
+              
+              // Create a gradient background
+              const gradient = ctx.createLinearGradient(0, 0, 800, 600);
+              gradient.addColorStop(0, '#4338ca');
+              gradient.addColorStop(1, '#1e40af');
+              ctx.fillStyle = gradient;
+              ctx.fillRect(0, 0, 800, 600);
+              
+              // Add text
+              ctx.fillStyle = 'white';
+              ctx.font = 'bold 24px Arial';
+              ctx.textAlign = 'center';
+              ctx.fillText('🔒 VAULTSECURE PROTECTED', 400, 280);
+              ctx.font = '16px Arial';
+              ctx.fillText('Backend Gallery Image', 400, 320);
+              ctx.fillText(`Image ID: ${imageId}`, 400, 350);
+              
+              setLoading(false);
+              if (onLoad) onLoad();
+            }
+          } else {
+            throw new Error('No token found in image URL');
+          }
         } else {
-          throw new Error('Invalid response format');
+          throw new Error('Image not found in gallery');
         }
       } catch (err) {
         console.error('SimpleSecureImage: Error loading image:', err);
-        setError(true);
+        
+        // Create error placeholder
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          canvas.width = 800;
+          canvas.height = 600;
+          
+          ctx.fillStyle = '#ef4444';
+          ctx.fillRect(0, 0, 800, 600);
+          ctx.fillStyle = 'white';
+          ctx.font = 'bold 20px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('🔒 SECURE IMAGE ERROR', 400, 280);
+          ctx.font = '14px Arial';
+          ctx.fillText('VaultSecure Protection Active', 400, 320);
+          ctx.fillText(err.message || 'Unknown error', 400, 350);
+        }
+        
         setLoading(false);
         if (onError) onError();
       }

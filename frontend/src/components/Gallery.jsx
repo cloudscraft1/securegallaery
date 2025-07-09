@@ -372,7 +372,7 @@ const Gallery = () => {
       </motion.div>
 
       {/* Gallery Grid */}
-      <div className="relative z-10 container mx-auto px-4 pb-16">
+      <div className="relative z-10 w-full pb-16">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -401,31 +401,17 @@ const Gallery = () => {
                   )}
                   
                   {/* Ultra-Secure Image with Maximum Protection */}
-                  {window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? (
-                    <UltraSecureImage
-                      imageUrl={`/api/secure/image/${image.id}/view`}
-                      alt={image.title}
-                      className="w-full h-auto object-cover transition-all duration-700 group-hover:scale-110 protected-content"
-                      onLoad={() => handleImageLoad(image.id)}
-                      onError={() => handleImageLoad(image.id)}
-                      style={{ 
-                        height: `${280 + (index % 3) * 100}px`,
-                        objectFit: 'cover'
-                      }}
-                    />
-                  ) : (
-                    <SimpleSecureImage
-                      imageId={image.id}
-                      alt={image.title}
-                      className="w-full h-auto object-cover transition-all duration-700 group-hover:scale-110 protected-content"
-                      onLoad={() => handleImageLoad(image.id)}
-                      onError={() => handleImageLoad(image.id)}
-                      style={{ 
-                        height: `${280 + (index % 3) * 100}px`,
-                        objectFit: 'cover'
-                      }}
-                    />
-                  )}
+                  <SimpleSecureImage
+                    imageId={image.id}
+                    alt={image.title}
+                    className="w-full h-auto object-cover transition-all duration-700 group-hover:scale-110 protected-content"
+                    onLoad={() => handleImageLoad(image.id)}
+                    onError={() => handleImageLoad(image.id)}
+                    style={{ 
+                      height: `${280 + (index % 3) * 100}px`,
+                      objectFit: 'cover'
+                    }}
+                  />
                   
                   {/* Security Watermark Overlay */}
                   <div className="absolute top-2 right-2 bg-blue-500/20 backdrop-blur-sm rounded-full px-2 py-1 border border-blue-500/30">

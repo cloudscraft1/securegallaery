@@ -209,7 +209,7 @@ class VaultSecureAPI {
       'your-domain.com',
       'choreoapps.dev',
       'e1-eu-north-azure.choreoapps.dev',
-      'securegallaery.onrender.com'
+      'securegallery.onrender.com'
     ];
     const currentDomain = window.location.hostname;
     console.log('Current domain:', currentDomain);
@@ -434,12 +434,26 @@ class VaultSecureAPI {
       console.log('Session ID:', this.sessionId);
       console.log('API Base:', this.api.defaults.baseURL);
       
-      const response = await this.api.get(imageUrl);
+      // Extract the path from the URL if it's a full URL
+      let requestUrl = imageUrl;
+      if (imageUrl.startsWith('http')) {
+        const url = new URL(imageUrl);
+        requestUrl = url.pathname + url.search;
+      }
+      
+      // Remove /api prefix if present since it's already in the base URL
+      if (requestUrl.startsWith('/api')) {
+        requestUrl = requestUrl.substring(4);
+      }
+      
+      console.log('Making request to:', requestUrl);
+      const response = await this.api.get(requestUrl);
       console.log('Secure image response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Failed to fetch secure image data:', {
         url: imageUrl,
+        requestUrl,
         error: error.message,
         response: error.response?.data,
         status: error.response?.status
