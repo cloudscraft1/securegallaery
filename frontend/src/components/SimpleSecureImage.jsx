@@ -71,27 +71,47 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
               }
             } catch (secureError) {
               console.error('Secure image loading failed:', secureError);
-              // If secure loading fails, create a placeholder showing the error
+              // Create a beautiful placeholder from backend gallery
               const canvas = canvasRef.current;
               const ctx = canvas.getContext('2d');
-              canvas.width = 800;
-              canvas.height = 600;
+              canvas.width = 400;
+              canvas.height = 400;
               
-              // Create a gradient background
-              const gradient = ctx.createLinearGradient(0, 0, 800, 600);
-              gradient.addColorStop(0, '#4338ca');
+              // Generate dynamic colors based on image ID
+              const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
+              const colorIndex = parseInt(imageId) - 1;
+              const bgColor = colors[colorIndex] || '#4338ca';
+              
+              // Create gradient background
+              const gradient = ctx.createLinearGradient(0, 0, 400, 400);
+              gradient.addColorStop(0, bgColor);
               gradient.addColorStop(1, '#1e40af');
               ctx.fillStyle = gradient;
-              ctx.fillRect(0, 0, 800, 600);
+              ctx.fillRect(0, 0, 400, 400);
+              
+              // Add patterns
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+              for (let i = 0; i < 400; i += 40) {
+                ctx.fillRect(i, 0, 2, 400);
+                ctx.fillRect(0, i, 400, 2);
+              }
               
               // Add text
               ctx.fillStyle = 'white';
               ctx.font = 'bold 24px Arial';
               ctx.textAlign = 'center';
-              ctx.fillText('🔒 VAULTSECURE PROTECTED', 400, 280);
+              ctx.fillText('🔒 VAULTSECURE', 200, 180);
               ctx.font = '16px Arial';
-              ctx.fillText('Backend Gallery Image', 400, 320);
-              ctx.fillText(`Image ID: ${imageId}`, 400, 350);
+              ctx.fillText('Backend Gallery Image', 200, 210);
+              ctx.fillText(`Image ID: ${imageId}`, 200, 240);
+              ctx.fillText('Protected Content', 200, 270);
+              
+              // Add corner watermarks
+              ctx.font = '12px Arial';
+              ctx.textAlign = 'left';
+              ctx.fillText('© VaultSecure', 10, 390);
+              ctx.textAlign = 'right';
+              ctx.fillText(new Date().toLocaleDateString(), 390, 390);
               
               setLoading(false);
               if (onLoad) onLoad();
@@ -274,7 +294,10 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
           display: loading ? 'none' : 'block',
           userSelect: 'none',
           webkitUserSelect: 'none',
-          pointerEvents: 'none'
+          pointerEvents: 'none',
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover'
         }}
       />
     </div>

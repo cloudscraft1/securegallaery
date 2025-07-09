@@ -377,7 +377,7 @@ const Gallery = () => {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.9 }}
-          className="masonry-grid"
+          className="gallery-grid"
         >
           {images.map((image, index) => (
             <motion.div
@@ -389,13 +389,13 @@ const Gallery = () => {
                 duration: 0.6,
                 ease: [0.25, 0.46, 0.45, 0.94]
               }}
-              className="masonry-item mb-8 group cursor-pointer protected-content"
+              className="gallery-item group cursor-pointer protected-content"
               onClick={() => openImageModal(image)}
               onMouseEnter={() => setHoveredImage(image.id)}
               onMouseLeave={() => setHoveredImage(null)}
             >
-              <div className="relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-2xl">
-                <div className="relative">
+              <div className="relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-2xl w-full h-full">
+                <div className="relative w-full h-full">
                   {imageLoading[image.id] && (
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-900/50 to-indigo-900/50 animate-pulse rounded-2xl"></div>
                   )}
@@ -404,11 +404,12 @@ const Gallery = () => {
                   <SimpleSecureImage
                     imageId={image.id}
                     alt={image.title}
-                    className="w-full h-auto object-cover transition-all duration-700 group-hover:scale-110 protected-content"
+                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 protected-content"
                     onLoad={() => handleImageLoad(image.id)}
                     onError={() => handleImageLoad(image.id)}
                     style={{ 
-                      height: `${280 + (index % 3) * 100}px`,
+                      width: '100%',
+                      height: '100%',
                       objectFit: 'cover'
                     }}
                   />
