@@ -240,7 +240,7 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
           display: 'block',
           userSelect: 'none',
           webkitUserSelect: 'none',
-          pointerEvents: 'none',
+          pointerEvents: 'auto',
           width: '100%',
           height: '100%',
           objectFit: 'cover'
