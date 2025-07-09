@@ -22,18 +22,25 @@ class SafeScreenshotProtection {
       this.warningCallback = warningCallback;
       this.isActive = true;
 
-      // Only initialize if we're in a browser environment
+// Only initialize if we're in a browser environment
       if (typeof window === 'undefined' || typeof document === 'undefined') {
         return;
       }
 
-      // 1. Keyboard shortcuts - Block only critical screenshot shortcuts
+      // Block only critical screenshot shortcuts
       document.addEventListener('keydown', this.handleKeyboardShortcuts, true);
       
-      // 2. Right-click prevention on protected elements only
-      document.addEventListener('contextmenu', this.preventContextMenu, false);
+      // Right-click context menu available; only block copy actions
+      const copyHandler = event => {
+        if (event.target && (event.target.classList.contains('protected-content') || event.target.closest('.protected-content'))) {
+          event.preventDefault();
+          this.reportSecurityEvent('Copy operation blocked on protected content');
+          this.showWarning('Copy operation blocked!');
+        }
+      }
+      document.addEventListener('copy', copyHandler, false);
       
-      // 3. Print prevention
+      // Maintain reduced print prevention (for sensitive cases)
       window.addEventListener('beforeprint', this.preventPrint);
       
       // 4. Screen recording/capture detection (safe version)
@@ -53,6 +60,11 @@ class SafeScreenshotProtection {
    */
   handleKeyboardShortcuts(event) {
     try {
+      // Only block when user is actively on protected content
+      if (!event.target.closest('.protected-content')) {
+        return true; // Allow all shortcuts on non-protected content
+      }
+
       const forbidden = [
         // Only block the most critical screenshot shortcuts
         { key: 'PrintScreen', ctrl: false, alt: false, shift: false },

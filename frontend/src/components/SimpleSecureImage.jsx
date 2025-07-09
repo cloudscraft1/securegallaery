@@ -147,14 +147,20 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
           ctx.fillText('Loading from gallery...', containerWidth/2, containerHeight/2 + 25);
           ctx.fillText(`ID: ${imageId}`, containerWidth/2, containerHeight/2 + 45);
           
-          // Add corner info
-          ctx.font = '10px Arial';
-          ctx.textAlign = 'left';
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-          ctx.fillText('© VaultSecure Gallery', 10, containerHeight - 10);
-          
-          ctx.textAlign = 'right';
-          ctx.fillText(new Date().toLocaleDateString(), containerWidth - 10, containerHeight - 10);
+            // Add corner info
+            ctx.font = '10px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.fillText('© VaultSecure Gallery', 10, containerHeight - 10);
+            
+            ctx.textAlign = 'right';
+            ctx.fillText(new Date().toLocaleDateString(), containerWidth - 10, containerHeight - 10);
+            
+            // Add watermark overlay to prevent easy copying
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('VAULTSECURE', containerWidth/2, containerHeight/2);
           
           setLoading(false);
           if (onLoad) onLoad();
@@ -185,87 +191,108 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
     };
   }, [imageId, onLoad, onError]);
 
-  // Security protection for canvas
+// Security protection for canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     
     if (!canvas || !container) return;
 
-    // 1. Disable right-click
-    const handleContextMenu = (e) => {
-      e.preventDefault();
-      apiService.reportSuspiciousActivity('Right-click blocked on secure image');
-      return false;
-    };
-
-    // 2. Disable drag
+    // Disable drag
     const handleDragStart = (e) => {
       e.preventDefault();
       apiService.reportSuspiciousActivity('Drag attempt blocked on secure image');
       return false;
     };
 
-    // 3. Disable selection
-    const handleSelectStart = (e) => {
+    // Custom context menu handler
+    const handleContextMenu = (e) => {
       e.preventDefault();
+      
+      // Show custom context menu with disabled options
+      const menu = document.createElement('div');
+      menu.style.cssText = `
+        position: fixed;
+        top: ${e.clientY}px;
+        left: ${e.clientX}px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        z-index: 10000;
+        border: 1px solid #333;
+      `;
+      
+      menu.innerHTML = `
+        <div style="padding: 4px 8px; color: #888; cursor: not-allowed;">Copy Image (Disabled)</div>
+        <div style="padding: 4px 8px; color: #888; cursor: not-allowed;">Save Image (Disabled)</div>
+        <div style="padding: 4px 8px; color: #888; cursor: not-allowed;">View Image (Disabled)</div>
+        <div style="padding: 4px 8px; color: #4CAF50;">🔒 VaultSecure Protected</div>
+      `;
+      
+      document.body.appendChild(menu);
+      
+      // Remove menu after 3 seconds or on click
+      setTimeout(() => {
+        if (menu.parentNode) menu.parentNode.removeChild(menu);
+      }, 3000);
+      
+      const removeMenu = () => {
+        if (menu.parentNode) menu.parentNode.removeChild(menu);
+        document.removeEventListener('click', removeMenu);
+      };
+      
+      document.addEventListener('click', removeMenu);
+      
+      apiService.reportSuspiciousActivity('Right-click detected on secure image');
       return false;
     };
 
-    // 4. Block print screen
-    const handleKeyDown = (e) => {
-      if (e.key === 'PrintScreen' || e.keyCode === 44) {
-        e.preventDefault();
-        apiService.reportSuspiciousActivity('Print screen blocked');
-        return false;
-      }
+    // Block copy operations
+    const handleCopy = (e) => {
+      e.preventDefault();
+      apiService.reportSuspiciousActivity('Copy operation blocked on secure image');
+      return false;
     };
 
-    // 5. Developer tools detection - reduced sensitivity
+    // Monitor dev tools without drastic actions
     let devToolsOpen = false;
     const detectDevTools = () => {
-      const threshold = 300; // Increased threshold to reduce false positives
+      const threshold = 300;
       const heightDiff = window.outerHeight - window.innerHeight;
       const widthDiff = window.outerWidth - window.innerWidth;
       
-      // Only trigger if both dimensions are significantly different
       if (heightDiff > threshold && widthDiff > threshold) {
-        if (!devToolsOpen) {
-          devToolsOpen = true;
-          // Only log, don't blur content
-          console.warn('Developer tools may be open');
-        }
+        devToolsOpen = true;
+        console.warn('Developer tools detected');
       } else {
-        if (devToolsOpen) {
-          devToolsOpen = false;
-        }
+        devToolsOpen = false;
       }
     };
 
-      // 6. Screenshot detection - reduced sensitivity
-      const detectScreenshot = () => {
-        // Only monitor for actual screenshot key combinations, not page visibility
-        const checkKeyPress = (e) => {
-          if (e.key === 'PrintScreen' || e.keyCode === 44) {
-            apiService.reportSuspiciousActivity('Print screen key detected');
-          }
-        };
-        
-        document.addEventListener('keydown', checkKeyPress);
-        return () => document.removeEventListener('keydown', checkKeyPress);
+    // Reduced screenshot detection
+    const detectScreenshot = () => {
+      const checkKeyPress = (e) => {
+        if (e.key === 'PrintScreen') {
+          apiService.reportSuspiciousActivity('Print screen key detected');
+          alert('Screenshot detected!');
+        }
       };
+      
+      document.addEventListener('keydown', checkKeyPress);
+      return () => document.removeEventListener('keydown', checkKeyPress);
+    };
 
-    // Apply all protections
-    container.addEventListener('contextmenu', handleContextMenu);
+    // Apply protections
     container.addEventListener('dragstart', handleDragStart);
-    container.addEventListener('selectstart', handleSelectStart);
-    document.addEventListener('keydown', handleKeyDown);
-    
-    // const devToolsInterval = setInterval(detectDevTools, 1000); // Disabled for debugging
+    container.addEventListener('contextmenu', handleContextMenu);
+    container.addEventListener('copy', handleCopy);
+    setInterval(detectDevTools, 2000);
     const cleanupScreenshot = detectScreenshot();
-    console.log('SimpleSecureImage: Security protections activated for image', imageId);
+    console.log('SimpleSecureImage: Adjusted security protections activated for image', imageId);
 
-    // Disable canvas data extraction
+    // Restore original toDataURL
     const originalToDataURL = canvas.toDataURL;
     canvas.toDataURL = function() {
       apiService.reportSuspiciousActivity('Canvas data extraction blocked');
@@ -273,11 +300,9 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
     };
 
     return () => {
-      container.removeEventListener('contextmenu', handleContextMenu);
       container.removeEventListener('dragstart', handleDragStart);
-      container.removeEventListener('selectstart', handleSelectStart);
-      document.removeEventListener('keydown', handleKeyDown);
-      // clearInterval(devToolsInterval); // Disabled for debugging
+      container.removeEventListener('contextmenu', handleContextMenu);
+      container.removeEventListener('copy', handleCopy);
       cleanupScreenshot();
       canvas.toDataURL = originalToDataURL;
     };

@@ -88,8 +88,8 @@ const Gallery = () => {
       }
       
       toast({
-        title: "🔐 Maximum Security Activated",
-        description: "VaultSecure protection is now active. Your images are ultra-secure.",
+        title: "🔐 Security Activated",
+        description: "VaultSecure protection is now active. Your images are secured.",
         variant: "default",
       });
       
@@ -305,13 +305,13 @@ const Gallery = () => {
         <div className="bg-green-500/20 backdrop-blur-sm border border-green-500/30 rounded-full px-4 py-2">
           <div className="flex items-center gap-2 text-green-300">
             <Shield className="w-4 h-4" />
-            <span className="text-sm font-medium">Maximum Security</span>
+            <span className="text-sm font-medium">Secure Gallery</span>
           </div>
         </div>
         <div className="bg-blue-500/20 backdrop-blur-sm border border-blue-500/30 rounded-full px-4 py-2">
           <div className="flex items-center gap-2 text-blue-300">
             <Lock className="w-4 h-4" />
-            <span className="text-sm font-medium">Anti-Cloning Active</span>
+            <span className="text-sm font-medium">Protected Images</span>
           </div>
         </div>
       </motion.div>
@@ -372,7 +372,7 @@ const Gallery = () => {
           transition={{ delay: 0.9, duration: 0.8 }}
           className="mt-4 text-sm text-blue-400/80"
         >
-          Security Level: {securityLevel.toUpperCase()} • Anti-Cloning: ACTIVE • Token-Based Access: ENABLED
+          Security Level: {securityLevel.toUpperCase()} • Protected Gallery • Token-Based Access: ENABLED
         </motion.div>
       </motion.div>
 
