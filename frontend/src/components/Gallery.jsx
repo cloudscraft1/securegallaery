@@ -18,6 +18,13 @@ const Gallery = () => {
   const [securityLevel, setSecurityLevel] = useState('maximum');
   const { toast } = useToast();
 
+  const handleVisibilityChange = () => {
+    if (document.hidden) {
+      // Clear sensitive data when page is hidden
+      console.clear();
+    }
+  };
+
   useEffect(() => {
     initializeSecureGallery();
     
@@ -38,13 +45,7 @@ const Gallery = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       screenshotProtection.destroy();
     };
-
-  const handleVisibilityChange = () => {
-    if (document.hidden) {
-      // Clear sensitive data when page is hidden
-      console.clear();
-    }
-  };
+  }, []);
 
   const initializeSecureGallery = async () => {
     try {
