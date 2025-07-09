@@ -144,42 +144,39 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
       }
     };
 
-    // 5. Developer tools detection
+    // 5. Developer tools detection - reduced sensitivity
     let devToolsOpen = false;
     const detectDevTools = () => {
-      const threshold = 160;
+      const threshold = 300; // Increased threshold to reduce false positives
       const heightDiff = window.outerHeight - window.innerHeight;
       const widthDiff = window.outerWidth - window.innerWidth;
       
-      if (heightDiff > threshold || widthDiff > threshold) {
+      // Only trigger if both dimensions are significantly different
+      if (heightDiff > threshold && widthDiff > threshold) {
         if (!devToolsOpen) {
           devToolsOpen = true;
-          apiService.reportSuspiciousActivity('Developer tools detected');
-          canvas.style.filter = 'blur(20px)';
-          canvas.style.opacity = '0.3';
+          // Only log, don't blur content
+          console.warn('Developer tools may be open');
         }
       } else {
         if (devToolsOpen) {
           devToolsOpen = false;
-          canvas.style.filter = 'none';
-          canvas.style.opacity = '1';
         }
       }
     };
 
-    // 6. Screenshot detection
-    const detectScreenshot = () => {
-      // Monitor for screenshot attempts
-      const checkVisibility = () => {
-        if (document.hidden) {
-          // Page is hidden, possible screenshot
-          apiService.reportSuspiciousActivity('Page hidden - possible screenshot');
-        }
+      // 6. Screenshot detection - reduced sensitivity
+      const detectScreenshot = () => {
+        // Only monitor for actual screenshot key combinations, not page visibility
+        const checkKeyPress = (e) => {
+          if (e.key === 'PrintScreen' || e.keyCode === 44) {
+            apiService.reportSuspiciousActivity('Print screen key detected');
+          }
+        };
+        
+        document.addEventListener('keydown', checkKeyPress);
+        return () => document.removeEventListener('keydown', checkKeyPress);
       };
-      
-      document.addEventListener('visibilitychange', checkVisibility);
-      return () => document.removeEventListener('visibilitychange', checkVisibility);
-    };
 
     // Apply all protections
     container.addEventListener('contextmenu', handleContextMenu);

@@ -4,75 +4,85 @@
     overflow: hidden;
 }
 
-/* Responsive CSS Grid Layout - Large Boxes Based on Screen Resolution */
+/* Improved Responsive CSS Grid Layout */
 .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
     padding: 0 1rem;
     width: 100%;
     max-width: 100%;
 }
 
-/* Mobile - 2 columns with smaller boxes */
-@media (min-width: 640px) {
+/* Small Mobile */
+@media (min-width: 480px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        padding: 0 2rem;
+        gap: 1.5rem;
+        padding: 0 1.5rem;
     }
 }
 
-/* Tablet - 3 columns */
-@media (min-width: 768px) {
+/* Mobile Large */
+@media (min-width: 640px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-        gap: 2.5rem;
+        gap: 2rem;
         padding: 0 2rem;
     }
 }
 
-/* Laptop - 4 columns */
-@media (min-width: 1024px) {
+/* Tablet */
+@media (min-width: 768px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-        gap: 2.5rem;
+        gap: 2rem;
+        padding: 0 2rem;
+    }
+}
+
+/* Laptop */
+@media (min-width: 1024px) {
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 2rem;
         padding: 0 3rem;
     }
 }
 
-/* Desktop - 5 columns */
+/* Desktop */
 @media (min-width: 1280px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 3rem;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 2rem;
+        padding: 0 3rem;
+    }
+}
+
+/* Large Desktop */
+@media (min-width: 1536px) {
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+        gap: 2rem;
         padding: 0 4rem;
     }
 }
 
-/* Large Desktop - 6 columns */
-@media (min-width: 1536px) {
-    .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 3rem;
-        padding: 0 5rem;
-    }
-}
-
-/* 1920px+ - 7-8 columns */
+/* 1920px+ Desktop */
 @media (min-width: 1920px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 3rem;
-        padding: 0 6rem;
+        gap: 2rem;
+        padding: 0 4rem;
     }
 }
 
-/* Ultra-wide screens - 8+ columns */
+/* Ultra-wide screens */
 @media (min-width: 2560px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 3rem;
-        padding: 0 8rem;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 2rem;
+        padding: 0 6rem;
     }
 }
 
