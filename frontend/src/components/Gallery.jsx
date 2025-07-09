@@ -38,7 +38,6 @@ const Gallery = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       screenshotProtection.destroy();
     };
-  }, []);
 
   const handleVisibilityChange = () => {
     if (document.hidden) {

@@ -425,13 +425,13 @@ class VaultSecureAPI {
       clearInterval(this.refreshInterval);
     }
     
-    // Schedule refresh every 5 hours (tokens expire in 6 hours)
+    // Schedule refresh every 23 hours (tokens expire in 24 hours)
     this.refreshInterval = setInterval(() => {
       console.log('Auto-refreshing tokens...');
       this.refreshTokens().catch(error => {
         console.warn('Auto token refresh failed:', error);
       });
-    }, 5 * 60 * 60 * 1000); // 5 hours
+    }, 23 * 60 * 60 * 1000); // 23 hours
   }
 
   stopTokenRefresh() {
@@ -459,58 +459,12 @@ class VaultSecureAPI {
     }
   }
 
-  async initializeSession() {
-    // Check for existing session
-    const storedSession = localStorage.getItem('vaultsecure_session');
-    const expiresAt = localStorage.getItem('vaultsecure_expires');
-    
-    if (storedSession && expiresAt) {
-      const expiry = new Date(expiresAt);
-      if (expiry > new Date()) {
-        this.sessionId = storedSession;
-        
-        // Validate the session
-        try {
-          await this.api.get('/session/validate');
-          console.log('Existing session validated successfully');
-          // Start token refresh scheduling for existing session
-          this.scheduleTokenRefresh();
-          return true;
-        } catch (error) {
-          console.warn('Stored session validation failed:', error.message);
-          // Session invalid, remove it
-          this.clearSession();
-        }
-      } else {
-        console.log('Stored session expired, clearing...');
-        // Session expired
-        this.clearSession();
-      }
-    }
-    
-    // Create new session with retry logic
-    let retries = 3;
-    while (retries > 0) {
-      try {
-        await this.createSession();
-        console.log('Session created successfully on attempt:', 4 - retries);
-        return true;
-      } catch (error) {
-        retries--;
-        console.warn(`Session creation attempt ${4 - retries} failed:`, error.message);
-        
-        if (retries > 0) {
-          console.log(`Retrying session creation... ${retries} attempts remaining`);
-          // Wait before retry
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        } else {
-          console.error('All session creation attempts failed');
-          throw error;
-        }
-      }
-    }
-    
-    return false;
+async initializeSession() {
+    // Always create a new session on reload
+    console.log('Initializing new session on page load...');
+    await this.createSession();
+    this.scheduleTokenRefresh();
+    return true;
   }
 
   clearSession() {
@@ -521,6 +475,7 @@ class VaultSecureAPI {
 
   async getImages() {
     try {
+      console.log('Fetching images from backend...');
       const response = await this.api.get('/images');
       
       // Cache tokens from image URLs
@@ -528,11 +483,37 @@ class VaultSecureAPI {
         response.data.forEach(image => {
           this.cacheTokensFromUrls(image.id, image.url, image.thumbnail_url);
         });
+        console.log(`Successfully fetched ${response.data.length} images`);
       }
       
       return response.data;
     } catch (error) {
       console.error('Failed to fetch protected images:', error);
+      throw error;
+    }
+  }
+
+  async getSimpleImages() {
+    try {
+      console.log('Fetching simple images from backend...');
+      const response = await axios.get(`${API_BASE}/simple-images`);
+      
+      console.log('Simple images response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch simple images:', error);
+      throw error;
+    }
+  }
+
+  async testConnection() {
+    try {
+      console.log('Testing backend connection...');
+      const response = await axios.get(`${API_BASE}/test`);
+      console.log('Connection test response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Connection test failed:', error);
       throw error;
     }
   }
@@ -589,8 +570,6 @@ class VaultSecureAPI {
   async getSecureImageData(imageUrl) {
     try {
       console.log('Fetching secure image data for URL:', imageUrl);
-      console.log('Session ID:', this.sessionId);
-      console.log('API Base:', this.api.defaults.baseURL);
       
       // Handle tokenized URLs properly
       let requestUrl = imageUrl;
@@ -608,17 +587,10 @@ class VaultSecureAPI {
       
       console.log('Making request to:', requestUrl);
       
-      // Make the request using axios directly with the full URL
-      const response = await axios.get(`${this.api.defaults.baseURL}${requestUrl}`, {
-        headers: {
-          'X-Session-ID': this.sessionId,
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-VaultSecure-Client': 'web-app'
-        },
-        timeout: 15000
-      });
+      // Make the request using the configured API instance
+      const response = await this.api.get(requestUrl);
       
-      console.log('Secure image response:', response.data);
+      console.log('Secure image response received successfully');
       return response.data;
     } catch (error) {
       console.error('Failed to fetch secure image data:', {

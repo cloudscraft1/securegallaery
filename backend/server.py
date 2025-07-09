@@ -48,8 +48,8 @@ load_dotenv(ROOT_DIR / '.env')
 # Security constants
 SECRET_KEY = secrets.token_urlsafe(32)
 ALGORITHM = "HS256"
-TOKEN_EXPIRY_MINUTES = 360  # 6 hours for better user experience
-MAX_REQUESTS_PER_MINUTE = 60
+TOKEN_EXPIRY_MINUTES = 1440  # 24 hours for better user experience
+MAX_REQUESTS_PER_MINUTE = 120  # Increased limit
 ALLOWED_DOMAINS = [
     "localhost:3000", 
     "127.0.0.1:3000", 
@@ -616,6 +616,38 @@ async def test_connection():
         "timestamp": datetime.utcnow().isoformat()
     }
 
+@api_router.get("/simple-images")
+async def get_simple_images():
+    """Get images without authentication for testing"""
+    try:
+        discovered_images = discover_images()
+        simple_images = []
+        
+        for img_data in discovered_images:
+            simple_images.append({
+                "id": img_data["id"],
+                "title": img_data["title"],
+                "description": img_data["description"],
+                "filename": img_data["filename"],
+                "tags": img_data["tags"],
+                "date": img_data["date_created"].strftime("%Y-%m-%d"),
+                "views": img_data["views"],
+                "likes": img_data["likes"]
+            })
+        
+        return {
+            "status": "success",
+            "count": len(simple_images),
+            "images": simple_images
+        }
+    except Exception as e:
+        logger.error(f"Error fetching simple images: {e}")
+        return {
+            "status": "error",
+            "error": str(e),
+            "images": []
+        }
+
 @api_router.get("/debug")
 async def debug_status():
     """Debug endpoint to check server status"""
@@ -667,46 +699,55 @@ async def create_session_endpoint(request: Request):
 async def get_images(request: Request, session_id: str = Depends(require_session)):
     """Get list of all images with secure URLs from local gallery"""
     
-    # Discover images dynamically from folder
-    discovered_images = discover_images()
-    logger.info(f"Discovered {len(discovered_images)} images in gallery")
-    
-    images = []
-    for img_data in discovered_images:
-        # Generate secure, time-limited tokens for each image
-        view_token = generate_secure_token(
-            img_data["id"], 
-            session_id, 
-            request.client.host, 
-            "view"
-        )
-        thumbnail_token = generate_secure_token(
-            img_data["id"], 
-            session_id, 
-            request.client.host, 
-            "thumbnail"
-        )
+    try:
+        # Discover images dynamically from folder
+        discovered_images = discover_images()
+        logger.info(f"Discovered {len(discovered_images)} images in gallery")
         
-        # Use SECURE token-based URLs - no direct access
-        image_url = f"/api/secure/image/{img_data['id']}/view?token={view_token}"
-        thumbnail_url = f"/api/secure/image/{img_data['id']}/thumbnail?token={thumbnail_token}"
+        images = []
+        for img_data in discovered_images:
+            try:
+                # Generate secure, time-limited tokens for each image
+                view_token = generate_secure_token(
+                    img_data["id"], 
+                    session_id, 
+                    request.client.host, 
+                    "view"
+                )
+                thumbnail_token = generate_secure_token(
+                    img_data["id"], 
+                    session_id, 
+                    request.client.host, 
+                    "thumbnail"
+                )
+                
+                # Use SECURE token-based URLs - no direct access
+                image_url = f"/api/secure/image/{img_data['id']}/view?token={view_token}"
+                thumbnail_url = f"/api/secure/image/{img_data['id']}/thumbnail?token={thumbnail_token}"
+                
+                images.append(ImageResponse(
+                    id=img_data["id"],
+                    title=img_data["title"],
+                    description=img_data["description"],
+                    tags=img_data["tags"],
+                    date=img_data["date_created"].strftime("%Y-%m-%d"),
+                    views=img_data["views"],
+                    likes=img_data["likes"],
+                    camera=img_data.get("camera"),
+                    settings=img_data.get("settings"),
+                    location=img_data.get("location"),
+                    url=image_url,
+                    thumbnail_url=thumbnail_url
+                ))
+            except Exception as img_error:
+                logger.warning(f"Failed to process image {img_data['id']}: {img_error}")
+                continue
         
-        images.append(ImageResponse(
-            id=img_data["id"],
-            title=img_data["title"],
-            description=img_data["description"],
-            tags=img_data["tags"],
-            date=img_data["date_created"].strftime("%Y-%m-%d"),
-            views=img_data["views"],
-            likes=img_data["likes"],
-            camera=img_data.get("camera"),
-            settings=img_data.get("settings"),
-            location=img_data.get("location"),
-            url=image_url,
-            thumbnail_url=thumbnail_url
-        ))
-    
-    return images
+        logger.info(f"Successfully processed {len(images)} images")
+        return images
+    except Exception as e:
+        logger.error(f"Error fetching images: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch images")
 
 @api_router.get("/secure/image/{image_id}/view")
 async def view_secure_image(image_id: str, token: str, request: Request):
