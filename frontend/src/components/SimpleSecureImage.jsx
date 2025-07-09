@@ -2,101 +2,178 @@ import React, { useState, useEffect, useRef } from 'react';
 import apiService from '../services/api';
 
 const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) => {
-  const [loading, setLoading] = useState(false); // Start with false to show images immediately
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [imageData, setImageData] = useState(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
 
   useEffect(() => {
-    const renderImage = () => {
-      const canvas = canvasRef.current;
-      if (!canvas || !imageId) return;
-      
-      const ctx = canvas.getContext('2d');
-      
-      // Set dynamic canvas size based on container
-      const containerWidth = canvas.parentElement?.clientWidth || 400;
-      const containerHeight = canvas.parentElement?.clientHeight || 400;
-      
-      canvas.width = containerWidth;
-      canvas.height = containerHeight;
-      
-      // Generate dynamic colors and content based on image ID
-      const imageData = {
-        '1': { color: '#FF6B6B', title: 'Mountain Sunrise', gradient: '#FF8E8E' },
-        '2': { color: '#4ECDC4', title: 'Ocean Waves', gradient: '#6ED9D0' },
-        '3': { color: '#45B7D1', title: 'City Lights', gradient: '#6AC4D9' },
-        '4': { color: '#96CEB4', title: 'Forest Path', gradient: '#A8D5C1' },
-        '5': { color: '#FFEAA7', title: 'Desert Dunes', gradient: '#FFEFB8' }
-      };
-      
-      const imgData = imageData[imageId] || { color: '#4338ca', title: 'Secure Image', gradient: '#5B4FE8' };
-      
-      // Create beautiful gradient background
-      const gradient = ctx.createLinearGradient(0, 0, containerWidth, containerHeight);
-      gradient.addColorStop(0, imgData.color);
-      gradient.addColorStop(1, imgData.gradient);
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, containerWidth, containerHeight);
-      
-      // Add artistic patterns
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-      for (let i = 0; i < containerWidth; i += 50) {
-        ctx.fillRect(i, 0, 2, containerHeight);
-      }
-      for (let i = 0; i < containerHeight; i += 50) {
-        ctx.fillRect(0, i, containerWidth, 2);
+    const loadAndRenderImage = async () => {
+      if (!imageId || !canvasRef.current) {
+        console.warn('SimpleSecureImage: Missing imageId or canvas ref');
+        return;
       }
       
-      // Add diagonal pattern
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-      ctx.lineWidth = 1;
-      for (let i = -containerHeight; i < containerWidth; i += 30) {
-        ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i + containerHeight, containerHeight);
-        ctx.stroke();
+      console.log('SimpleSecureImage: Loading image for ID:', imageId);
+      setLoading(true);
+      setError(false);
+      
+      try {
+        // First, get the images list to find the URL for this imageId
+        const images = await apiService.getImages();
+        const imageData = images.find(img => img.id === imageId);
+        
+        if (!imageData) {
+          console.error('SimpleSecureImage: Image not found for ID:', imageId);
+          setError(true);
+          setLoading(false);
+          return;
+        }
+        
+        console.log('SimpleSecureImage: Found image data:', imageData);
+        
+        // Try to load the secure image from backend
+        try {
+          const secureImageData = await apiService.getSecureImageData(imageData.url);
+          
+          if (secureImageData && secureImageData.success && secureImageData.imageData) {
+            console.log('SimpleSecureImage: Successfully loaded secure image data');
+            
+            // Render the image to canvas
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            img.onload = () => {
+              console.log('SimpleSecureImage: Image loaded, rendering to canvas');
+              
+              // Set canvas size based on container
+              const containerWidth = canvas.parentElement?.clientWidth || 400;
+              const containerHeight = canvas.parentElement?.clientHeight || 400;
+              
+              canvas.width = containerWidth;
+              canvas.height = containerHeight;
+              
+              // Calculate aspect ratio to fit image properly
+              const aspectRatio = img.width / img.height;
+              const containerAspect = containerWidth / containerHeight;
+              
+              let drawWidth, drawHeight, drawX, drawY;
+              
+              if (aspectRatio > containerAspect) {
+                // Image is wider than container
+                drawWidth = containerWidth;
+                drawHeight = containerWidth / aspectRatio;
+                drawX = 0;
+                drawY = (containerHeight - drawHeight) / 2;
+              } else {
+                // Image is taller than container
+                drawHeight = containerHeight;
+                drawWidth = containerHeight * aspectRatio;
+                drawX = (containerWidth - drawWidth) / 2;
+                drawY = 0;
+              }
+              
+              // Clear canvas and draw image
+              ctx.clearRect(0, 0, containerWidth, containerHeight);
+              ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+              
+              // Add small watermark overlay (the backend already adds watermarks)
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+              ctx.font = '12px Arial';
+              ctx.textAlign = 'left';
+              ctx.fillText('© VaultSecure', 10, containerHeight - 10);
+              
+              setImageLoaded(true);
+              setLoading(false);
+              
+              if (onLoad) onLoad();
+            };
+            
+            img.onerror = (imgError) => {
+              console.error('SimpleSecureImage: Failed to load image into canvas:', imgError);
+              setError(true);
+              setLoading(false);
+              if (onError) onError(imgError);
+            };
+            
+            img.src = secureImageData.imageData;
+            
+          } else {
+            throw new Error('Invalid secure image data received');
+          }
+        } catch (secureError) {
+          console.error('SimpleSecureImage: Secure image loading failed:', secureError);
+          
+          // Fallback: Create a placeholder with the image title
+          const canvas = canvasRef.current;
+          const ctx = canvas.getContext('2d');
+          
+          // Set canvas size
+          const containerWidth = canvas.parentElement?.clientWidth || 400;
+          const containerHeight = canvas.parentElement?.clientHeight || 400;
+          
+          canvas.width = containerWidth;
+          canvas.height = containerHeight;
+          
+          // Create gradient background based on image ID
+          const colors = {
+            '1': { start: '#FF6B6B', end: '#FF8E8E' },
+            '2': { start: '#4ECDC4', end: '#6ED9D0' },
+            '3': { start: '#45B7D1', end: '#6AC4D9' },
+            '4': { start: '#96CEB4', end: '#A8D5C1' },
+            '5': { start: '#FFEAA7', end: '#FFEFB8' }
+          };
+          
+          const color = colors[imageId] || { start: '#4338ca', end: '#5B4FE8' };
+          
+          const gradient = ctx.createLinearGradient(0, 0, containerWidth, containerHeight);
+          gradient.addColorStop(0, color.start);
+          gradient.addColorStop(1, color.end);
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, containerWidth, containerHeight);
+          
+          // Add content
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.font = 'bold 20px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('🔒 VAULTSECURE', containerWidth/2, containerHeight/2 - 30);
+          
+          ctx.font = '16px Arial';
+          ctx.fillText(imageData.title || 'Secure Image', containerWidth/2, containerHeight/2);
+          
+          ctx.font = '12px Arial';
+          ctx.fillText('Loading from gallery...', containerWidth/2, containerHeight/2 + 25);
+          ctx.fillText(`ID: ${imageId}`, containerWidth/2, containerHeight/2 + 45);
+          
+          // Add corner info
+          ctx.font = '10px Arial';
+          ctx.textAlign = 'left';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+          ctx.fillText('© VaultSecure Gallery', 10, containerHeight - 10);
+          
+          ctx.textAlign = 'right';
+          ctx.fillText(new Date().toLocaleDateString(), containerWidth - 10, containerHeight - 10);
+          
+          setLoading(false);
+          if (onLoad) onLoad();
+        }
+      } catch (error) {
+        console.error('SimpleSecureImage: Error loading image:', error);
+        setError(true);
+        setLoading(false);
+        if (onError) onError(error);
       }
-      
-      // Add central content
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.font = 'bold 24px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('🔒 VAULTSECURE', containerWidth/2, containerHeight/2 - 40);
-      
-      ctx.font = '18px Arial';
-      ctx.fillText(imgData.title, containerWidth/2, containerHeight/2);
-      
-      ctx.font = '14px Arial';
-      ctx.fillText('Backend Gallery Image', containerWidth/2, containerHeight/2 + 25);
-      ctx.fillText(`Protected ID: ${imageId}`, containerWidth/2, containerHeight/2 + 45);
-      
-      // Add corner watermarks
-      ctx.font = '12px Arial';
-      ctx.textAlign = 'left';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.fillText('© VaultSecure Gallery', 10, containerHeight - 10);
-      
-      ctx.textAlign = 'right';
-      ctx.fillText(new Date().toLocaleDateString(), containerWidth - 10, containerHeight - 10);
-      
-      // Add session info
-      ctx.textAlign = 'center';
-      ctx.fillText(`Session: ${apiService.sessionId?.substring(0, 8) || 'SECURE'}`, containerWidth/2, containerHeight - 30);
-      
-      // Call onLoad immediately
-      if (onLoad) onLoad();
     };
 
-    // Render immediately without loading state
-    renderImage();
+    loadAndRenderImage();
     
     // Add resize observer for dynamic sizing
     const handleResize = () => {
-      if (canvasRef.current) {
+      if (canvasRef.current && imageLoaded) {
         setTimeout(() => {
-          renderImage();
+          loadAndRenderImage();
         }, 100);
       }
     };
@@ -231,11 +308,20 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
         webkitTouchCallout: 'none'
       }}
     >
+      {loading && (
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/50 to-indigo-900/50 animate-pulse rounded-lg flex items-center justify-center">
+          <div className="text-white text-center">
+            <div className="animate-spin w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-2"></div>
+            <div className="text-sm">🔒 Loading Secure Image...</div>
+          </div>
+        </div>
+      )}
+      
       <canvas
         ref={canvasRef}
         className={className}
         style={{
-          display: 'block',
+          display: loading ? 'none' : 'block',
           userSelect: 'none',
           webkitUserSelect: 'none',
           pointerEvents: 'auto',

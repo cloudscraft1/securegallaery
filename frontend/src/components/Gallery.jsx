@@ -116,10 +116,10 @@ const Gallery = () => {
     
     // Protect the loaded image with advanced screenshot protection
     setTimeout(() => {
-      const imageElements = document.querySelectorAll(`img[alt*="${images.find(img => img.id === imageId)?.title || ''}"]`);
-      console.log('Gallery: Protecting', imageElements.length, 'image elements');
-      imageElements.forEach(img => {
-        screenshotProtection.protectElement(img);
+      const canvasElements = document.querySelectorAll('.ultra-secure-container canvas');
+      console.log('Gallery: Protecting', canvasElements.length, 'canvas elements');
+      canvasElements.forEach(canvas => {
+        screenshotProtection.protectElement(canvas);
       });
     }, 100);
   };
@@ -127,6 +127,11 @@ const Gallery = () => {
   const handleImageLoadStart = (imageId) => {
     console.log('Gallery: Image load started for:', imageId);
     setImageLoading(prev => ({ ...prev, [imageId]: true }));
+  };
+
+  const handleImageError = (imageId) => {
+    console.log('Gallery: Image load error for:', imageId);
+    setImageLoading(prev => ({ ...prev, [imageId]: false }));
   };
 
   const openImageModal = (image) => {
@@ -406,7 +411,7 @@ const Gallery = () => {
                     alt={image.title}
                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 protected-content"
                     onLoad={() => handleImageLoad(image.id)}
-                    onError={() => handleImageLoad(image.id)}
+                    onError={() => handleImageError(image.id)}
                     style={{ 
                       width: '100%',
                       height: '100%',
