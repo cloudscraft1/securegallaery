@@ -1,6 +1,6 @@
-# Core FastAPI dependencies
+# Core FastAPI dependencies - Production Only
 fastapi==0.115.6
-uvicorn==0.32.1
+uvicorn[standard]==0.32.1
 pydantic>=2.10.5
 python-dotenv>=1.0.1
 pyjwt>=2.10.1
@@ -8,28 +8,3 @@ requests>=2.32.3
 python-multipart>=0.0.20
 aiofiles>=24.1.0
 pillow>=11.0.0
-
-# For production, remove MongoDB and heavy dependencies
-# since we're using in-memory storage
-# pymongo>=4.5.0,<4.10
-# motor==3.6.0
-# boto3>=1.35.101
-# pandas>=2.2.3
-# numpy>=2.2.1
-
-# Development dependencies (remove for production)
-# pytest>=8.3.4
-# black>=24.12.0
-# isort>=5.13.2
-# flake8>=7.1.1
-# mypy>=1.14.0
-
-# Optional dependencies
-# requests-oauthlib>=2.0.0
-# cryptography>=43.0.3
-# email-validator>=2.2.0
-# passlib>=1.7.4
-# tzdata>=2024.2
-# python-jose>=3.3.0
-# jq>=1.8.1
-# typer>=0.15.1

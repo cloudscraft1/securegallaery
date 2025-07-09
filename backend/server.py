@@ -26,12 +26,19 @@ import asyncio
 from collections import defaultdict
 import requests
 
-# Configure logging first
+# Configure logging for production
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('/tmp/vaultsecure.log')
+    ]
 )
 logger = logging.getLogger(__name__)
+
+# Reduce uvicorn logging verbosity in production
+logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -54,12 +61,13 @@ ALLOWED_DOMAINS = [
     "*.choreoapps.dev"
 ]
 
-# Create the main app
+# Create the main app - Production Configuration
 app = FastAPI(
     title="VaultSecure API", 
     description="Ultra-Secure Protected Image Gallery API",
-    docs_url=None,  # Disable docs in production
-    redoc_url=None  # Disable redoc in production
+    docs_url=None,  # Disabled for production security
+    redoc_url=None,  # Disabled for production security
+    openapi_url=None  # Disable OpenAPI schema in production
 )
 
 # Create a router with the /api prefix
@@ -644,6 +652,9 @@ async def view_secure_image(image_id: str, token: str, request: Request):
             
             # Open and process the local image
             img = Image.open(image_path)
+        except Exception as img_error:
+            logger.error(f"Error loading image {image_id}: {img_error}")
+            raise HTTPException(status_code=500, detail="Failed to load image")
         
         # Add multiple watermarks and protection
         img = img.convert('RGBA')
@@ -1035,8 +1046,8 @@ async def health_check():
         "service": "VaultSecure"
     }
 
-# Main entry point for debugging
+# Production entry point - no debug mode
 if __name__ == "__main__":
     import uvicorn
-    logger.info("Starting VaultSecure API in debug mode...")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    logger.info("Starting VaultSecure API in production mode...")
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
