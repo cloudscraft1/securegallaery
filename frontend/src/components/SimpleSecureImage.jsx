@@ -73,11 +73,7 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
           ctx.clearRect(0, 0, containerWidth, containerHeight);
           ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
           
-          // Add minimal canvas watermark
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-          ctx.font = '10px Arial';
-          ctx.textAlign = 'left';
-          ctx.fillText(brandingConfig.canvasWatermark, 8, containerHeight - 8);
+          // Clean image without watermarks
           
           setLoading(false);
           setError(false);
@@ -159,11 +155,7 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
         ctx.font = '11px Arial';
         ctx.fillText(`ID: ${id}`, containerWidth/2, containerHeight/2 + 25);
         
-        // Add minimal watermark
-        ctx.font = '10px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.fillText(brandingConfig.canvasWatermark, 8, containerHeight - 8);
+        // Clean fallback without watermarks
         
         setLoading(false);
         loadingRef.current = false;

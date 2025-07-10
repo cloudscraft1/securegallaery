@@ -108,11 +108,7 @@ const SimpleImageDisplay = ({ imageId, alt, className, style, onLoad, onError })
           ctx.clearRect(0, 0, containerWidth, containerHeight);
           ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
           
-          // Add minimal canvas watermark
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-          ctx.font = '10px Arial';
-          ctx.textAlign = 'left';
-          ctx.fillText(brandingConfig.canvasWatermark, 4, containerHeight - 4);
+          // Clean image without watermarks
           
           setLoading(false);
           setError(false);
@@ -178,11 +174,7 @@ const SimpleImageDisplay = ({ imageId, alt, className, style, onLoad, onError })
         ctx.font = '10px Arial';
         ctx.fillText(`ID: ${imageId}`, containerWidth/2, containerHeight/2 + 20);
         
-        // Minimal watermark
-        ctx.font = '10px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.fillText(brandingConfig.canvasWatermark, 8, containerHeight - 8);
+        // Clean placeholder without watermarks
         
         setLoading(false);
         if (onLoad) onLoad();

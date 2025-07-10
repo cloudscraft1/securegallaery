@@ -403,10 +403,7 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
                     canvas.height = img.height;
                     ctx.drawImage(img, 0, 0);
                     
-                    // Add minimal canvas watermark (consistent with other components)
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-                    ctx.font = '10px Arial';
-                    ctx.fillText(brandingConfig.canvasWatermark, 10, 20);
+                    // Clean image without watermarks
                     
                     resolve();
                   } catch (drawError) {
@@ -463,11 +460,7 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
           ctx.fillText('Protection Active', 400, 300);
           ctx.fillText('Image protected with enterprise security', 400, 330);
           
-          // Add minimal watermark
-          ctx.font = '10px Arial';
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-          ctx.textAlign = 'left';
-          ctx.fillText(brandingConfig.canvasWatermark, 20, 580);
+          // Clean placeholder without watermarks
           
           setLoading(false);
           if (onLoad) onLoad();
@@ -488,10 +481,7 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
           // Draw image
           ctx.drawImage(img, 0, 0);
           
-          // Add minimal canvas watermark
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-          ctx.font = '10px Arial';
-          ctx.fillText(brandingConfig.canvasWatermark, 10, 20);
+          // Clean image without watermarks
           
           setLoading(false);
           if (onLoad) onLoad();
@@ -539,11 +529,7 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
           ctx.fillText('🔒 SECURE CONTENT', 200, 140);
           ctx.fillText('Temporary Load Issue', 200, 170);
           
-          // Add minimal watermark
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-          ctx.font = '10px Arial';
-          ctx.textAlign = 'left';
-          ctx.fillText(brandingConfig.canvasWatermark, 10, 290);
+          // Clean error display without watermarks
         }
         
         setLoading(false);

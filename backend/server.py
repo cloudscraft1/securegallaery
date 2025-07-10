@@ -157,8 +157,6 @@ def create_sample_images():
                 if font:
                     try:
                         draw.text((x, y), sample["text"], font=font, fill='white')
-                        draw.text((10, 10), "VaultSecure Gallery", font=font, fill='white')
-                        draw.text((10, 580), f"Protected: {sample['filename']}", font=font, fill='white')
                     except Exception as text_error:
                         logger.warning(f"Text drawing error: {text_error}")
                         # Draw simple rectangle as fallback
@@ -302,46 +300,22 @@ def validate_referer(request: Request) -> bool:
     # More lenient validation for demo
     return any(host in f"{parsed_referer.netloc}" for host in allowed_hosts) or parsed_referer.netloc == ""
 
-def add_watermark_to_image(image_path: str, watermark_text: str = "VaultSecure") -> io.BytesIO:
-    """Add watermark to image for additional protection"""
+def add_watermark_to_image(image_path: str, watermark_text: str = "") -> io.BytesIO:
+    """Return clean image without watermarks"""
     try:
-        # For demo purposes, create a simple watermarked placeholder
+        # Return clean image without any watermarks
         img_buffer = io.BytesIO()
         
-        # Create a watermarked image (in production, you'd process the actual image)
-        img = Image.new('RGB', (800, 600), color='purple')
-        draw = ImageDraw.Draw(img)
-        
-        # Add watermark
-        try:
-            # Try to use a font, fallback to default if not available
-            font = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", 40)
-        except:
-            font = ImageFont.load_default()
-        
-        # Add semi-transparent watermark
-        watermark_img = Image.new('RGBA', img.size, (0, 0, 0, 0))
-        watermark_draw = ImageDraw.Draw(watermark_img)
-        
-        bbox = watermark_draw.textbbox((0, 0), watermark_text, font=font)
-        text_width = bbox[2] - bbox[0]
-        text_height = bbox[3] - bbox[1]
-        
-        x = (img.size[0] - text_width) // 2
-        y = (img.size[1] - text_height) // 2
-        
-        watermark_draw.text((x, y), watermark_text, font=font, fill=(255, 255, 255, 128))
-        
-        # Composite watermark onto image
-        img = Image.alpha_composite(img.convert('RGBA'), watermark_img).convert('RGB')
+        # Create a clean image
+        img = Image.new('RGB', (800, 600), color='lightblue')
         
         img.save(img_buffer, format='JPEG', quality=85)
         img_buffer.seek(0)
         
         return img_buffer
     except Exception as e:
-        logging.error(f"Error adding watermark: {e}")
-        # Return empty buffer if watermarking fails
+        logging.error(f"Error processing image: {e}")
+        # Return empty buffer if processing fails
         return io.BytesIO()
 
 async def create_fallback_image_response(image_id: str, session_id: str, error_message: str):
@@ -358,10 +332,9 @@ async def create_fallback_image_response(image_id: str, session_id: str, error_m
         
         if font:
             # Add fallback message
-            draw.text((50, 250), f"VaultSecure Gallery", font=font, fill='white')
+            draw.text((50, 250), f"Secure Gallery", font=font, fill='white')
             draw.text((50, 300), f"Image ID: {image_id}", font=font, fill='white')
             draw.text((50, 350), f"Status: {error_message}", font=font, fill='white')
-            draw.text((50, 400), f"Session: {session_id[:8]}", font=font, fill='white')
         else:
             # Fallback without font
             draw.rectangle([50, 250, 750, 400], fill='white')
@@ -379,12 +352,11 @@ async def create_fallback_image_response(image_id: str, session_id: str, error_m
             "success": True,
             "imageData": f"data:image/jpeg;base64,{img_base64}",
             "imageId": image_id,
-            "sessionId": session_id[:8],
             "timestamp": datetime.utcnow().isoformat(),
             "fallback": True,
             "error": error_message,
             "security": {
-                "watermarked": True,
+                "watermarked": False,
                 "sessionBound": True,
                 "antiDownload": True
             }
@@ -819,56 +791,18 @@ async def view_secure_image(image_id: str, token: str, request: Request):
             # Return fallback image instead of failing
             return await create_fallback_image_response(image_id, session_id, "Processing error")
         
-        # Add watermarks with error handling
+        # Use clean image without watermarks
         try:
-            # Convert to RGBA for watermarking
-            if img.mode != 'RGBA':
-                img = img.convert('RGBA')
+            # Convert to RGB for consistent format
+            if img.mode != 'RGB':
+                protected_img = img.convert('RGB')
+            else:
+                protected_img = img
             
-            width, height = img.size
-            
-            # Create watermark overlay
-            watermark = Image.new('RGBA', (width, height), (0, 0, 0, 0))
-            draw = ImageDraw.Draw(watermark)
-            
-            # Add session-specific watermarks
-            watermark_text = f"VAULTSECURE-{session_id[:8]}"
-            
-            try:
-                font = ImageFont.load_default()
-            except:
-                font = None
-            
-            # Add watermarks only if font is available
-            if font:
-                # Add multiple diagonal watermarks (reduced for performance)
-                step_x, step_y = 300, 200
-                for i in range(0, width + height, step_y):
-                    for j in range(0, width, step_x):
-                        x = j - i + height
-                        y = i
-                        if 0 <= x <= width and 0 <= y <= height:
-                            try:
-                                draw.text((x, y), watermark_text, font=font, fill=(255, 255, 255, 80))
-                                draw.text((x+1, y+1), watermark_text, font=font, fill=(0, 0, 0, 40))
-                            except:
-                                pass  # Skip if text drawing fails
-                
-                # Add corner watermarks
-                try:
-                    draw.text((10, 10), "© VaultSecure", font=font, fill=(255, 255, 255, 120))
-                    draw.text((width-150, height-30), f"ID:{image_id}", font=font, fill=(255, 255, 255, 120))
-                except:
-                    pass  # Skip if text drawing fails
-            
-            # Composite watermark onto image
-            protected_img = Image.alpha_composite(img, watermark)
-            protected_img = protected_img.convert('RGB')
-            
-        except Exception as watermark_error:
-            logger.warning(f"Watermarking failed for image {image_id}: {watermark_error}")
-            # Use original image if watermarking fails
-            protected_img = img.convert('RGB')
+        except Exception as convert_error:
+            logger.warning(f"Image conversion failed for image {image_id}: {convert_error}")
+            # Use original image if conversion fails
+            protected_img = img
         
         # Convert to base64 for canvas rendering
         try:
@@ -900,10 +834,9 @@ async def view_secure_image(image_id: str, token: str, request: Request):
             "success": True,
             "imageData": f"data:image/jpeg;base64,{img_base64}",
             "imageId": image_id,
-            "sessionId": session_id[:8],
             "timestamp": datetime.utcnow().isoformat(),
             "security": {
-                "watermarked": True,
+                "watermarked": False,
                 "sessionBound": True,
                 "antiDownload": True
             }
@@ -960,16 +893,7 @@ async def view_secure_thumbnail(image_id: str, token: str, request: Request):
             # Create thumbnail (300x200)
             img.thumbnail((300, 200), Image.Resampling.LANCZOS)
             
-            # Add watermark to thumbnail
-            draw = ImageDraw.Draw(img)
-            try:
-                font = ImageFont.load_default()
-            except:
-                font = None
-            
-            # Add small watermark
-            if font:
-                draw.text((5, 5), "VaultSecure", font=font, fill='rgba(255,255,255,0.8)')
+            # Clean thumbnail without watermarks
             
             # Convert to bytes
             img_buffer = io.BytesIO()
