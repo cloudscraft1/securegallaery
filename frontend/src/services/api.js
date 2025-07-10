@@ -661,7 +661,7 @@ async initializeSession() {
 
   // Monitor for suspicious activity
   reportSuspiciousActivity(activity) {
-    console.warn(`🚨 VaultSecure: Suspicious activity detected - ${activity}`);
+    console.warn(`🚨 Suspicious activity detected - ${activity}`);
     
     // Send to backend for logging
     try {
@@ -682,7 +682,7 @@ async initializeSession() {
 
   // Report errors to monitoring system
   reportError(errorData) {
-    console.error('🚨 VaultSecure Error:', errorData);
+    console.error('🚨 Error:', errorData);
     
     // Send to backend for logging
     try {

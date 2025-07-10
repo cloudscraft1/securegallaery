@@ -8,9 +8,9 @@ console.log('REACT_APP_BRAND_NAME:', process.env.REACT_APP_BRAND_NAME);
 
 const brandingConfig = {
   // Main Brand Name
-  brandName: process.env.REACT_APP_BRAND_NAME || 'VaultSecure',
-  brandNamePart1: process.env.REACT_APP_BRAND_NAME_PART1 || 'Vault',
-  brandNamePart2: process.env.REACT_APP_BRAND_NAME_PART2 || 'Secure',
+  brandName: process.env.REACT_APP_BRAND_NAME || 'SecureGallery',
+  brandNamePart1: process.env.REACT_APP_BRAND_NAME_PART1 || 'Secure',
+  brandNamePart2: process.env.REACT_APP_BRAND_NAME_PART2 || 'Gallery',
   
   // Watermark and Security Labels
   canvasWatermark: process.env.REACT_APP_CANVAS_WATERMARK || 'secure',
@@ -21,7 +21,7 @@ const brandingConfig = {
   
   // Toast Messages
   securityMessage: process.env.REACT_APP_SECURITY_MESSAGE || '🔐 Security Activated',
-  securityDescription: process.env.REACT_APP_SECURITY_DESCRIPTION || 'VaultSecure protection is now active. Your images are secured.',
+  securityDescription: process.env.REACT_APP_SECURITY_DESCRIPTION || 'Protection is now active. Your images are secured.',
   
   // Loading Messages
   loadingMessages: {
