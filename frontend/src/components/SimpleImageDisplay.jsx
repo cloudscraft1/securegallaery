@@ -202,7 +202,7 @@ const SimpleImageDisplay = ({ imageId, alt, className, style, onLoad, onError })
       <div className={`${className} bg-red-900/20 border border-red-500/30 rounded-lg flex items-center justify-center`} style={style}>
         <div className="text-red-400 text-center p-4">
           <div className="text-lg font-bold">🔒 SECURE ACCESS DENIED</div>
-          <div className="text-sm">VaultSecure Protection Active</div>
+          <div className="text-sm">Protection Active</div>
         </div>
       </div>
     );

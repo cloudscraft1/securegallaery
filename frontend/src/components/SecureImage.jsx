@@ -122,13 +122,13 @@ const SecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) => {
         const originalToDataURL = canvas.toDataURL;
         canvas.toDataURL = function() {
           apiService.reportSuspiciousActivity('Canvas data extraction blocked');
-          throw new Error('Access denied: VaultSecure protection active');
+          throw new Error('Access denied: Protection active');
         };
 
         const originalGetImageData = canvas.getContext('2d').getImageData;
         canvas.getContext('2d').getImageData = function() {
           apiService.reportSuspiciousActivity('Canvas image data access blocked');
-          throw new Error('Access denied: VaultSecure protection active');
+          throw new Error('Access denied: Protection active');
         };
 
       } catch (err) {
@@ -163,7 +163,7 @@ const SecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) => {
       >
         <div className="text-red-400 text-center p-4">
           <div className="text-lg font-bold">🔒 Access Denied</div>
-          <div className="text-sm">VaultSecure Protection Active</div>
+          <div className="text-sm">Protection Active</div>
         </div>
       </div>
     );

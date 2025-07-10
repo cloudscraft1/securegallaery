@@ -271,7 +271,7 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
         <div style="padding: 4px 8px; color: #888; cursor: not-allowed;">Copy Image (Disabled)</div>
         <div style="padding: 4px 8px; color: #888; cursor: not-allowed;">Save Image (Disabled)</div>
         <div style="padding: 4px 8px; color: #888; cursor: not-allowed;">View Image (Disabled)</div>
-        <div style="padding: 4px 8px; color: #4CAF50;">🔒 VaultSecure Protected</div>
+        <div style="padding: 4px 8px; color: #4CAF50;">🔒 Protected</div>
       `;
       
       document.body.appendChild(menu);
@@ -339,7 +339,7 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
     const originalToDataURL = canvas.toDataURL;
     canvas.toDataURL = function() {
       apiService.reportSuspiciousActivity('Canvas data extraction blocked');
-      throw new Error('Access denied: VaultSecure protection active');
+      throw new Error('Access denied: Protection active');
     };
 
     return () => {
@@ -356,7 +356,7 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
       <div className={`${className} bg-red-900/20 border border-red-500/30 rounded-lg flex items-center justify-center`} style={style}>
         <div className="text-red-400 text-center p-4">
           <div className="text-lg font-bold">🔒 SECURE ACCESS DENIED</div>
-          <div className="text-sm">VaultSecure Protection Active</div>
+          <div className="text-sm">Protection Active</div>
         </div>
       </div>
     );

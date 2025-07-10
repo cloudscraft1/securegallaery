@@ -536,8 +536,14 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
           ctx.fillStyle = 'white';
           ctx.font = 'bold 18px Arial';
           ctx.textAlign = 'center';
-          ctx.fillText('🔒 VAULTSECURE', 200, 140);
+          ctx.fillText('🔒 SECURE CONTENT', 200, 140);
           ctx.fillText('Temporary Load Issue', 200, 170);
+          
+          // Add minimal watermark
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+          ctx.font = '10px Arial';
+          ctx.textAlign = 'left';
+          ctx.fillText(brandingConfig.canvasWatermark, 10, 290);
         }
         
         setLoading(false);

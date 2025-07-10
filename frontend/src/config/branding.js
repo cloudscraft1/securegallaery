@@ -1,6 +1,11 @@
 // Branding Configuration - All static strings and branding elements
 // Change values in .env file to update branding across the entire application
 
+// Debug environment variables
+console.log('Environment variables loaded:');
+console.log('REACT_APP_CANVAS_WATERMARK:', process.env.REACT_APP_CANVAS_WATERMARK);
+console.log('REACT_APP_BRAND_NAME:', process.env.REACT_APP_BRAND_NAME);
+
 const brandingConfig = {
   // Main Brand Name
   brandName: process.env.REACT_APP_BRAND_NAME || 'VaultSecure',
@@ -39,5 +44,10 @@ const brandingConfig = {
     suffix: '• Protected Gallery • Token-Based Access: ENABLED'
   }
 };
+
+// Debug final configuration
+console.log('Final branding configuration:');
+console.log('canvasWatermark:', brandingConfig.canvasWatermark);
+console.log('brandName:', brandingConfig.brandName);
 
 export default brandingConfig;
