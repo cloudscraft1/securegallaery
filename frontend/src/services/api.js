@@ -1,4 +1,5 @@
 import axios from 'axios';
+import brandingConfig from '../config/branding';
 
 // Auto-detect backend URL based on environment
 const getBackendURL = () => {
@@ -622,7 +623,7 @@ async initializeSession() {
       // Add additional client-side watermarks (minimal)
       ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
       ctx.font = '10px Arial';
-      ctx.fillText('secure', 10, 20);
+      ctx.fillText(brandingConfig.canvasWatermark, 10, 20);
       
       // Prevent context menu and selection
       canvas.oncontextmenu = (e) => {

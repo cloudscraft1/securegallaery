@@ -9,6 +9,7 @@ const brandingConfig = {
   
   // Watermark and Security Labels
   watermarkText: process.env.REACT_APP_WATERMARK_TEXT || 'secure',
+  canvasWatermark: process.env.REACT_APP_CANVAS_WATERMARK || 'secure',
   
   // Main Taglines and Descriptions
   tagline: process.env.REACT_APP_TAGLINE || 'Your memories, safeguarded with military-grade protection',
