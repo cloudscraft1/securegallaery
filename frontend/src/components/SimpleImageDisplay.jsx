@@ -78,36 +78,40 @@ const SimpleImageDisplay = ({ imageId, alt, className, style, onLoad, onError })
           const containerWidth = container?.clientWidth || 400;
           const containerHeight = container?.clientHeight || 400;
           
+          // Set canvas size to match container exactly
           canvas.width = containerWidth;
           canvas.height = containerHeight;
           
-          // Calculate aspect ratio for proper fit
+          // Calculate aspect ratio for COVER fit (fills entire container)
           const aspectRatio = img.width / img.height;
           const containerAspect = containerWidth / containerHeight;
           
           let drawWidth, drawHeight, drawX, drawY;
           
+          // Use object-fit: cover logic - crop to fill container completely
           if (aspectRatio > containerAspect) {
-            drawWidth = containerWidth;
-            drawHeight = containerWidth / aspectRatio;
-            drawX = 0;
-            drawY = (containerHeight - drawHeight) / 2;
-          } else {
+            // Image is wider - fit to height and crop width
             drawHeight = containerHeight;
             drawWidth = containerHeight * aspectRatio;
             drawX = (containerWidth - drawWidth) / 2;
             drawY = 0;
+          } else {
+            // Image is taller - fit to width and crop height
+            drawWidth = containerWidth;
+            drawHeight = containerWidth / aspectRatio;
+            drawX = 0;
+            drawY = (containerHeight - drawHeight) / 2;
           }
           
-          // Clear and draw
+          // Clear and draw image to fill entire canvas
           ctx.clearRect(0, 0, containerWidth, containerHeight);
           ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
           
-          // Add watermark
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-          ctx.font = '10px Arial';
+          // Add subtle corner watermark
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          ctx.font = '8px Arial';
           ctx.textAlign = 'left';
-          ctx.fillText('© VaultSecure', 8, containerHeight - 8);
+          ctx.fillText('© VS', 4, containerHeight - 4);
           
           setLoading(false);
           setError(false);
