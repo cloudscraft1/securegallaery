@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import apiService from '../services/api';
+import brandingConfig from '../config/branding';
 
 const SimpleImageDisplay = ({ imageId, alt, className, style, onLoad, onError }) => {
   const [loading, setLoading] = useState(true);
@@ -107,11 +108,11 @@ const SimpleImageDisplay = ({ imageId, alt, className, style, onLoad, onError })
           ctx.clearRect(0, 0, containerWidth, containerHeight);
           ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
           
-          // Add subtle corner watermark
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-          ctx.font = '8px Arial';
+          // Add minimal canvas watermark
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+          ctx.font = '10px Arial';
           ctx.textAlign = 'left';
-          ctx.fillText('© VS', 4, containerHeight - 4);
+          ctx.fillText(brandingConfig.canvasWatermark, 4, containerHeight - 4);
           
           setLoading(false);
           setError(false);
@@ -169,7 +170,7 @@ const SimpleImageDisplay = ({ imageId, alt, className, style, onLoad, onError })
         ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
         ctx.font = 'bold 16px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('🔒 VAULTSECURE', containerWidth/2, containerHeight/2 - 20);
+        ctx.fillText('🔒 SECURE CONTENT', containerWidth/2, containerHeight/2 - 20);
         
         ctx.font = '12px Arial';
         ctx.fillText(title || 'Secure Image', containerWidth/2, containerHeight/2 + 5);
@@ -177,11 +178,11 @@ const SimpleImageDisplay = ({ imageId, alt, className, style, onLoad, onError })
         ctx.font = '10px Arial';
         ctx.fillText(`ID: ${imageId}`, containerWidth/2, containerHeight/2 + 20);
         
-        // Corner watermark
-        ctx.font = '8px Arial';
+        // Minimal watermark
+        ctx.font = '10px Arial';
         ctx.textAlign = 'left';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        ctx.fillText('© VaultSecure Gallery', 8, containerHeight - 8);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.fillText(brandingConfig.canvasWatermark, 8, containerHeight - 8);
         
         setLoading(false);
         if (onLoad) onLoad();

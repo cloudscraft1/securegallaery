@@ -1,5 +1,6 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import apiService from '../services/api';
+import brandingConfig from '../config/branding';
 
 const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) => {
   const canvasRef = useRef(null);
@@ -402,17 +403,10 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
                     canvas.height = img.height;
                     ctx.drawImage(img, 0, 0);
                     
-                    // Add secure watermarks
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                    ctx.font = '20px Arial';
-                    ctx.fillText('VAULTSECURE PROTECTED', 10, 30);
-                    
-                    const sessionId = apiService.sessionId?.substring(0, 8) || 'SECURE';
-                    ctx.fillText(`Session: ${sessionId}`, 10, canvas.height - 20);
-                    
-                    // Add timestamp
-                    const timestamp = new Date().toLocaleString();
-                    ctx.fillText(`Loaded: ${timestamp}`, 10, canvas.height - 50);
+                    // Add minimal canvas watermark (consistent with other components)
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                    ctx.font = '10px Arial';
+                    ctx.fillText(brandingConfig.canvasWatermark, 10, 20);
                     
                     resolve();
                   } catch (drawError) {
@@ -466,16 +460,14 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
           ctx.textAlign = 'center';
           ctx.fillText('🔒 SECURE CONTENT', 400, 250);
           ctx.font = '18px Arial';
-          ctx.fillText('VaultSecure Protection Active', 400, 300);
+          ctx.fillText('Protection Active', 400, 300);
           ctx.fillText('Image protected with enterprise security', 400, 330);
           
-          // Add watermarks
-          const sessionId = apiService.sessionId?.substring(0, 8) || 'SECURE';
-          ctx.font = '12px Arial';
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+          // Add minimal watermark
+          ctx.font = '10px Arial';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
           ctx.textAlign = 'left';
-          ctx.fillText(`© VAULTSECURE - Session: ${sessionId}`, 20, 580);
-          ctx.fillText(`Protected: ${new Date().toLocaleString()}`, 20, 560);
+          ctx.fillText(brandingConfig.canvasWatermark, 20, 580);
           
           setLoading(false);
           if (onLoad) onLoad();
@@ -496,30 +488,10 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
           // Draw image
           ctx.drawImage(img, 0, 0);
           
-          // Add security watermarks
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-          ctx.font = 'bold 20px Arial';
-          
-          // Session-specific watermarks
-          const sessionId = apiService.sessionId?.substring(0, 8) || 'SECURE';
-          const timestamp = new Date().toISOString();
-          
-          // Diagonal watermarks
-          for (let x = 0; x < canvas.width; x += 250) {
-            for (let y = 0; y < canvas.height; y += 200) {
-              ctx.save();
-              ctx.translate(x, y);
-              ctx.rotate(-Math.PI / 6);
-              ctx.fillText(`VAULTSECURE-${sessionId}`, 0, 0);
-              ctx.restore();
-            }
-          }
-          
-          // Corner watermarks
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-          ctx.font = '14px Arial';
-          ctx.fillText('© VAULTSECURE', 10, 25);
-          ctx.fillText(`ID: ${sessionId}`, canvas.width - 100, canvas.height - 10);
+          // Add minimal canvas watermark
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+          ctx.font = '10px Arial';
+          ctx.fillText(brandingConfig.canvasWatermark, 10, 20);
           
           setLoading(false);
           if (onLoad) onLoad();
