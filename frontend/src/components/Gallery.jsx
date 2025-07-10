@@ -420,10 +420,10 @@ const Gallery = () => {
                   />
                   
 {/* Security Watermark Overlay */}
-                  								<div className="absolute top-1 right-1 bg-blue-500/20 backdrop-blur-sm rounded-full p-1 border border-blue-500/30">
-                  									<div className="flex items-center gap-1">
-                  										<Shield className="w-2 h-2 text-blue-300" />
-                  										<span className="text-[10px] text-blue-300 font-medium">SECURE</span>
+                  								<div className="absolute top-0.5 right-0.5 bg-blue-500/20 backdrop-blur-sm rounded-full p-0.5 border border-blue-500/30">
+                  									<div className="flex items-center gap-0.5">
+                  										<Shield className="w-1.5 h-1.5 text-blue-300" />
+                  										<span className="text-[8px] text-blue-300 font-medium">SECURE</span>
                   									</div>
                   								</div>
                   
