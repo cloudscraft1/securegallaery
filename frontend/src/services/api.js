@@ -619,14 +619,10 @@ async initializeSession() {
       // Draw image
       ctx.drawImage(img, 0, 0);
       
-      // Add additional client-side watermarks
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.font = '16px Arial';
-      ctx.fillText('VAULTSECURE PROTECTED', 10, 30);
-      
-      // Add timestamp watermark
-      const timestamp = new Date().toISOString();
-      ctx.fillText(`Viewed: ${timestamp}`, 10, canvas.height - 10);
+      // Add additional client-side watermarks (minimal)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.font = '10px Arial';
+      ctx.fillText('secure', 10, 20);
       
       // Prevent context menu and selection
       canvas.oncontextmenu = (e) => {
