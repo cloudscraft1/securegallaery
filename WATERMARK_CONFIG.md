@@ -1,6 +1,6 @@
-# Canvas Watermark Configuration
+# Single Watermark Configuration
 
-The canvas watermark can be configured using the `REACT_APP_CANVAS_WATERMARK` environment variable.
+The application now uses a single, configurable watermark system via the `REACT_APP_CANVAS_WATERMARK` environment variable.
 
 ## Environment Variable
 
@@ -10,10 +10,11 @@ REACT_APP_CANVAS_WATERMARK=your_watermark_text
 
 ## Features
 
-- **No Prefixes/Suffixes**: The watermark will display exactly as configured
+- **Single Watermark**: Only one watermark appears on images (no duplicates)
+- **No Prefixes/Suffixes**: The watermark displays exactly as configured
 - **Dynamic**: Change the watermark by updating the environment variable
-- **Minimal**: Small, subtle watermark with low opacity
-- **Consistent**: Works across all secure image displays
+- **Minimal**: Small, subtle watermark with low opacity (10%)
+- **Consistent**: Same watermark across all secure image displays
 
 ## Examples
 
@@ -43,4 +44,7 @@ Update these files to change the canvas watermark:
 
 ## Note
 
-The canvas watermark is applied to secure images rendered on HTML5 canvas elements. It's separate from the overlay watermarks on regular image elements.
+- All overlay watermarks have been removed to eliminate duplicates
+- Only the canvas watermark is displayed (configurable via environment variable)
+- The watermark is applied to all secure images rendered on HTML5 canvas elements
+- Very subtle appearance: 10px Arial font with 10% opacity

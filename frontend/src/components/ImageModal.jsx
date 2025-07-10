@@ -263,13 +263,6 @@ const ImageModal = ({ image, isOpen, onClose, onNavigate, canNavigate, onLike })
                 )}
               </motion.div>
               
-              {/* Security Watermark */}
-              <div className="absolute top-0.5 right-0.5 bg-blue-500/20 backdrop-blur-sm rounded-full p-0.5 border border-blue-500/30">
-                <div className="flex items-center gap-0.5">
-                  <Shield className="w-1.5 h-1.5 text-blue-300" />
-                  <span className="text-[6px] text-blue-300 font-thin opacity-50">{brandingConfig.watermarkText}</span>
-                </div>
-              </div>
               
               {/* Glow Effect */}
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/20 to-indigo-500/20 blur-xl -z-10"></div>

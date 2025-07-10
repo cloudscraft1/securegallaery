@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import apiService from '../services/api';
+import brandingConfig from '../config/branding';
 
 const SecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) => {
   const canvasRef = useRef(null);
@@ -49,11 +50,10 @@ const SecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) => {
               // Draw image
               ctx.drawImage(img, 0, 0);
               
-              // Add development watermarks
-              ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-              ctx.font = '20px Arial';
-              ctx.fillText('VAULTSECURE DEVELOPMENT', 10, 30);
-              ctx.fillText('LOCALHOST ONLY', 10, canvas.height - 20);
+              // Add minimal canvas watermark (consistent with api.js)
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+              ctx.font = '10px Arial';
+              ctx.fillText(brandingConfig.canvasWatermark, 10, 20);
               
               // Still apply protection
               canvas.oncontextmenu = (e) => {

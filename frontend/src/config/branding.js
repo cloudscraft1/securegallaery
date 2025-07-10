@@ -8,7 +8,6 @@ const brandingConfig = {
   brandNamePart2: process.env.REACT_APP_BRAND_NAME_PART2 || 'Secure',
   
   // Watermark and Security Labels
-  watermarkText: process.env.REACT_APP_WATERMARK_TEXT || 'secure',
   canvasWatermark: process.env.REACT_APP_CANVAS_WATERMARK || 'secure',
   
   // Main Taglines and Descriptions

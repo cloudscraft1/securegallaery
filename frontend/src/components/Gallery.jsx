@@ -420,13 +420,6 @@ const Gallery = () => {
                     }}
                   />
                   
-{/* Security Watermark Overlay */}
-								<div className="absolute top-0.5 right-0.5 bg-blue-500/20 backdrop-blur-sm rounded-full p-0.5 border border-blue-500/30">
-									<div className="flex items-center gap-0.5">
-										<Shield className="w-1.5 h-1.5 text-blue-300" />
-										<span className="text-[6px] text-blue-300 font-thin opacity-50">{brandingConfig.watermarkText}</span>
-									</div>
-								</div>
                   
                   {/* Hover Effect Ring */}
                   <div className={`absolute inset-0 border-2 border-blue-500/0 rounded-2xl transition-all duration-300 ${
