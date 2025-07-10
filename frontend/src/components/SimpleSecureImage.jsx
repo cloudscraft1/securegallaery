@@ -1,72 +1,42 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import apiService from '../services/api';
 
 const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [imageData, setImageData] = useState(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
-  const imgRef = useRef(null);
+  const loadingRef = useRef(false);
 
-  useEffect(() => {
-    const loadAndRenderImage = async () => {
-      if (!imageId) {
-        console.warn('SimpleSecureImage: Missing imageId');
+  // Memoize the callback functions to prevent re-renders
+  const stableOnLoad = useCallback(() => {
+    if (onLoad && !hasLoaded) {
+      setHasLoaded(true);
+      onLoad();
+    }
+  }, [onLoad, hasLoaded]);
+
+  const stableOnError = useCallback((err) => {
+    if (onError) {
+      onError(err);
+    }
+  }, [onError]);
+
+  const renderImageToCanvas = useCallback((imageDataUrl) => {
+    return new Promise((resolve) => {
+      if (!canvasRef.current) {
+        resolve();
         return;
       }
+
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
       
-      console.log('SimpleSecureImage: Loading image for ID:', imageId);
-      setLoading(true);
-      setError(false);
-      
-      try {
-        // First, get the images list to find the secure URL for this imageId
-        const images = await apiService.getImages();
-        const foundImageData = images.find(img => img.id === imageId);
-        
-        if (!foundImageData) {
-          console.error('SimpleSecureImage: Image not found for ID:', imageId);
-          await renderFallbackImage(imageId, 'Image not found');
-          return;
-        }
-        
-        console.log('SimpleSecureImage: Found image data:', foundImageData);
-        setImageData(foundImageData);
-        
-        // Try to load the secure image using the provided secure URL
+      img.onload = () => {
         try {
-          const secureImageData = await apiService.getSecureImageData(foundImageData.url);
-          
-          if (secureImageData && secureImageData.success && secureImageData.imageData) {
-            console.log('SimpleSecureImage: Successfully loaded secure image data');
-            await renderImageToCanvas(secureImageData.imageData);
-          } else {
-            console.warn('SimpleSecureImage: Invalid secure image data, using fallback');
-            await renderFallbackImage(imageId, foundImageData.title);
-          }
-        } catch (secureError) {
-          console.error('SimpleSecureImage: Secure image loading failed:', secureError);
-          await renderFallbackImage(imageId, foundImageData.title);
-        }
-      } catch (error) {
-        console.error('SimpleSecureImage: Error loading image:', error);
-        await renderFallbackImage(imageId, 'Loading error');
-      }
-    };
-
-    const renderImageToCanvas = (imageDataUrl) => {
-      return new Promise((resolve) => {
-        if (!canvasRef.current) {
-          resolve();
-          return;
-        }
-
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-        const img = new Image();
-        
-        img.onload = () => {
           console.log('SimpleSecureImage: Image loaded, rendering to canvas');
           
           // Set canvas size based on container or default
@@ -110,29 +80,44 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
           
           setLoading(false);
           setError(false);
+          loadingRef.current = false;
           
-          if (onLoad) onLoad();
+          stableOnLoad();
           resolve();
-        };
-        
-        img.onerror = (imgError) => {
-          console.error('SimpleSecureImage: Failed to load image into canvas:', imgError);
-          renderFallbackImage(imageId, 'Render error').then(resolve);
-        };
-        
-        img.src = imageDataUrl;
-      });
-    };
-
-    const renderFallbackImage = (id, title) => {
-      return new Promise((resolve) => {
-        if (!canvasRef.current) {
-          setLoading(false);
+        } catch (renderError) {
+          console.error('Error rendering image to canvas:', renderError);
           setError(true);
+          setLoading(false);
+          loadingRef.current = false;
+          stableOnError(renderError);
           resolve();
-          return;
         }
+      };
+      
+      img.onerror = (imgError) => {
+        console.error('SimpleSecureImage: Failed to load image into canvas:', imgError);
+        setError(true);
+        setLoading(false);
+        loadingRef.current = false;
+        stableOnError(imgError);
+        resolve();
+      };
+      
+      img.src = imageDataUrl;
+    });
+  }, [stableOnLoad, stableOnError]);
 
+  const renderFallbackImage = useCallback((id, title) => {
+    return new Promise((resolve) => {
+      if (!canvasRef.current) {
+        setLoading(false);
+        setError(true);
+        loadingRef.current = false;
+        resolve();
+        return;
+      }
+
+      try {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         
@@ -180,14 +165,73 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
         ctx.fillText('© VaultSecure Gallery', 8, containerHeight - 8);
         
         setLoading(false);
-        if (onLoad) onLoad();
+        loadingRef.current = false;
+        stableOnLoad();
         resolve();
-      });
+      } catch (fallbackError) {
+        console.error('Error rendering fallback image:', fallbackError);
+        setLoading(false);
+        setError(true);
+        loadingRef.current = false;
+        stableOnError(fallbackError);
+        resolve();
+      }
+    });
+  }, [stableOnLoad, stableOnError]);
+
+  useEffect(() => {
+    // Prevent multiple simultaneous loads
+    if (!imageId || loadingRef.current) {
+      return;
+    }
+
+    const loadAndRenderImage = async () => {
+      if (loadingRef.current) return; // Double check
+      
+      loadingRef.current = true;
+      console.log('SimpleSecureImage: Loading image for ID:', imageId);
+      setLoading(true);
+      setError(false);
+      setHasLoaded(false);
+      
+      try {
+        // First, get the images list to find the secure URL for this imageId
+        const images = await apiService.getImages();
+        const foundImageData = images.find(img => img.id === imageId);
+        
+        if (!foundImageData) {
+          console.error('SimpleSecureImage: Image not found for ID:', imageId);
+          await renderFallbackImage(imageId, 'Image not found');
+          return;
+        }
+        
+        console.log('SimpleSecureImage: Found image data:', foundImageData);
+        setImageData(foundImageData);
+        
+        // Try to load the secure image using the provided secure URL
+        try {
+          const secureImageData = await apiService.getSecureImageData(foundImageData.url);
+          
+          if (secureImageData && secureImageData.success && secureImageData.imageData) {
+            console.log('SimpleSecureImage: Successfully loaded secure image data');
+            await renderImageToCanvas(secureImageData.imageData);
+          } else {
+            console.warn('SimpleSecureImage: Invalid secure image data, using fallback');
+            await renderFallbackImage(imageId, foundImageData.title);
+          }
+        } catch (secureError) {
+          console.error('SimpleSecureImage: Secure image loading failed:', secureError);
+          await renderFallbackImage(imageId, foundImageData.title);
+        }
+      } catch (error) {
+        console.error('SimpleSecureImage: Error loading image:', error);
+        await renderFallbackImage(imageId, 'Loading error');
+      }
     };
 
     loadAndRenderImage();
     
-  }, [imageId, onLoad, onError]);
+  }, [imageId, renderImageToCanvas, renderFallbackImage]);
 
 // Security protection for canvas
   useEffect(() => {

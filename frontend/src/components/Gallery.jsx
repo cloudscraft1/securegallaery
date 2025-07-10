@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, Heart, Download, Sparkles, Shield, Lock, AlertTriangle, CheckCircle } from 'lucide-react';
 import ImageModal from './ImageModal';
 import UltraSecureImage from './UltraSecureImage';
-import SimpleSecureImage from './SimpleSecureImage';
+import SimpleImageDisplay from './SimpleImageDisplay';
 import apiService from '../services/api';
 import { useToast } from '../hooks/use-toast';
 import screenshotProtection from '../lib/safe-screenshot-protection';
@@ -110,7 +110,7 @@ const Gallery = () => {
     }
   };
 
-  const handleImageLoad = (imageId) => {
+  const handleImageLoad = useCallback((imageId) => {
     console.log('Gallery: Image loaded successfully:', imageId);
     setImageLoading(prev => ({ ...prev, [imageId]: false }));
     
@@ -122,17 +122,17 @@ const Gallery = () => {
         screenshotProtection.protectElement(canvas);
       });
     }, 100);
-  };
+  }, []);
 
-  const handleImageLoadStart = (imageId) => {
+  const handleImageLoadStart = useCallback((imageId) => {
     console.log('Gallery: Image load started for:', imageId);
     setImageLoading(prev => ({ ...prev, [imageId]: true }));
-  };
+  }, []);
 
-  const handleImageError = (imageId) => {
+  const handleImageError = useCallback((imageId) => {
     console.log('Gallery: Image load error for:', imageId);
     setImageLoading(prev => ({ ...prev, [imageId]: false }));
-  };
+  }, []);
 
   const openImageModal = (image) => {
     setSelectedImage(image);
@@ -406,7 +406,7 @@ const Gallery = () => {
                   )}
                   
                   {/* Ultra-Secure Image with Maximum Protection */}
-                  <SimpleSecureImage
+                  <SimpleImageDisplay
                     imageId={image.id}
                     alt={image.title}
                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 protected-content"
