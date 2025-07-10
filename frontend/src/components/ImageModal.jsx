@@ -202,7 +202,7 @@ const ImageModal = ({ image, isOpen, onClose, onNavigate, canNavigate, onLike })
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="relative max-w-7xl max-h-[85vh] w-full h-full flex items-center justify-center mt-16"
+            className="relative max-w-[95vw] max-h-[90vh] w-auto h-auto flex items-center justify-center mt-16"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative">
@@ -217,14 +217,14 @@ const ImageModal = ({ image, isOpen, onClose, onNavigate, canNavigate, onLike })
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4 }}
-                className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl border border-white/10"
+                className="rounded-2xl shadow-2xl border border-white/10"
               >
                 {/* Localhost fallback */}
                 {window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? (
                   <img
                     src={image.url.startsWith('http') ? image.url : `http://localhost:8000${image.url}`}
                     alt={image.title}
-                    className="max-w-full max-h-[85vh] object-contain rounded-2xl protected-content"
+                    className="max-w-[90vw] max-h-[80vh] object-contain rounded-2xl protected-content"
                     onLoad={handleImageLoad}
                     onError={(e) => {
                       console.log('Modal image failed to load:', image.url);
@@ -234,7 +234,9 @@ const ImageModal = ({ image, isOpen, onClose, onNavigate, canNavigate, onLike })
                       filter: imageLoaded ? 'none' : 'blur(5px)',
                       transition: 'filter 0.3s ease',
                       userSelect: 'none',
-                      pointerEvents: 'none'
+                      pointerEvents: 'none',
+                      width: 'auto',
+                      height: 'auto'
                     }}
                     onContextMenu={(e) => {
                       e.preventDefault();
@@ -247,12 +249,14 @@ const ImageModal = ({ image, isOpen, onClose, onNavigate, canNavigate, onLike })
                   <SecureImage
                     imageUrl={image.url}
                     alt={image.title}
-                    className="max-w-full max-h-[85vh] object-contain rounded-2xl protected-content"
+                    className="max-w-[90vw] max-h-[80vh] object-contain rounded-2xl protected-content"
                     onLoad={handleImageLoad}
                     onError={() => setImageLoaded(true)}
                     style={{
                       filter: imageLoaded ? 'none' : 'blur(5px)',
-                      transition: 'filter 0.3s ease'
+                      transition: 'filter 0.3s ease',
+                      width: 'auto',
+                      height: 'auto'
                     }}
                   />
                 )}
@@ -260,11 +264,11 @@ const ImageModal = ({ image, isOpen, onClose, onNavigate, canNavigate, onLike })
               
               {/* Security Watermark */}
 <div className="absolute top-1 right-1 bg-blue-500/20 backdrop-blur-sm rounded p-1 border border-blue-500/30">
-                <div className="flex items-center gap-2 text-blue-200">
-                  <Shield className="w-5 h-5" />
-                  <span className="text-sm font-semibold">VAULTSECURE PROTECTED</span>
-                </div>
-              </div>
+    <div className="flex items-center gap-2 text-blue-200">
+      <Shield className="w-5 h-5" />
+      <span className="text-[8px] font-thin">secure</span>
+    </div>
+  </div>
               
               {/* Glow Effect */}
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/20 to-indigo-500/20 blur-xl -z-10"></div>
