@@ -620,10 +620,7 @@ async initializeSession() {
       // Draw image
       ctx.drawImage(img, 0, 0);
       
-      // Add additional client-side watermarks (minimal)
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-      ctx.font = '10px Arial';
-      ctx.fillText(brandingConfig.canvasWatermark, 10, 20);
+      // No watermarks - clean image display
       
       // Prevent context menu and selection
       canvas.oncontextmenu = (e) => {

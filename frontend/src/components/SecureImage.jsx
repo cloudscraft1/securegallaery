@@ -50,10 +50,7 @@ const SecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) => {
               // Draw image
               ctx.drawImage(img, 0, 0);
               
-              // Add minimal canvas watermark (consistent with api.js)
-              ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-              ctx.font = '10px Arial';
-              ctx.fillText(brandingConfig.canvasWatermark, 10, 20);
+              // No watermarks - clean image display
               
               // Still apply protection
               canvas.oncontextmenu = (e) => {
