@@ -21,6 +21,7 @@ import {
 import SecureImage from './SecureImage';
 import apiService from '../services/api';
 import screenshotProtection from '../lib/safe-screenshot-protection';
+import brandingConfig from '../config/branding';
 
 const ImageModal = ({ image, isOpen, onClose, onNavigate, canNavigate, onLike }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -173,15 +174,15 @@ const ImageModal = ({ image, isOpen, onClose, onNavigate, canNavigate, onLike })
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20">
                   <Shield className="w-4 h-4 text-blue-400" />
-                  <span className="text-white text-sm font-medium">VaultSecure</span>
+                  <span className="text-white text-sm font-medium">{brandingConfig.brandName}</span>
                 </div>
                 <div className="flex items-center gap-2 bg-green-500/20 backdrop-blur-sm rounded-full px-4 py-2 border border-green-500/30">
                   <Lock className="w-4 h-4 text-green-400" />
-                  <span className="text-green-300 text-sm">Protected</span>
+                  <span className="text-green-300 text-sm">{brandingConfig.statusLabels.protectedStatus}</span>
                 </div>
                 <div className="flex items-center gap-2 bg-blue-500/20 backdrop-blur-sm rounded-full px-4 py-2 border border-blue-500/30">
                   <Eye className="w-4 h-4 text-blue-400" />
-                  <span className="text-blue-300 text-sm">Secure View</span>
+                  <span className="text-blue-300 text-sm">{brandingConfig.statusLabels.secureView}</span>
                 </div>
               </div>
               
@@ -266,7 +267,7 @@ const ImageModal = ({ image, isOpen, onClose, onNavigate, canNavigate, onLike })
               <div className="absolute top-0.5 right-0.5 bg-blue-500/20 backdrop-blur-sm rounded-full p-0.5 border border-blue-500/30">
                 <div className="flex items-center gap-0.5">
                   <Shield className="w-1.5 h-1.5 text-blue-300" />
-                  <span className="text-[6px] text-blue-300 font-thin opacity-50">secure</span>
+                  <span className="text-[6px] text-blue-300 font-thin opacity-50">{brandingConfig.watermarkText}</span>
                 </div>
               </div>
               

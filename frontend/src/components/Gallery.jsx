@@ -7,6 +7,7 @@ import SimpleImageDisplay from './SimpleImageDisplay';
 import apiService from '../services/api';
 import { useToast } from '../hooks/use-toast';
 import screenshotProtection from '../lib/safe-screenshot-protection';
+import brandingConfig from '../config/branding';
 
 const Gallery = () => {
   const [images, setImages] = useState([]);
@@ -88,8 +89,8 @@ const Gallery = () => {
       }
       
       toast({
-        title: "🔐 Security Activated",
-        description: "VaultSecure protection is now active. Your images are secured.",
+        title: brandingConfig.securityMessage,
+        description: brandingConfig.securityDescription,
         variant: "default",
       });
       
@@ -221,10 +222,10 @@ const Gallery = () => {
                 className="text-5xl lg:text-7xl font-black mb-4"
               >
                 <span className="bg-gradient-to-r from-white via-blue-200 to-indigo-200 bg-clip-text text-transparent">
-                  Vault
+                  {brandingConfig.brandNamePart1}
                 </span>
                 <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-blue-600 bg-clip-text text-transparent">
-                  Secure
+                  {brandingConfig.brandNamePart2}
                 </span>
               </motion.h1>
               
@@ -252,9 +253,9 @@ const Gallery = () => {
                 transition={{ delay: 0.7, duration: 0.8 }}
                 className="text-xl text-blue-200 mb-4 max-w-md"
               >
-                {sessionStatus === 'connecting' && 'Activating maximum security protocols...'}
-                {sessionStatus === 'connected' && 'Loading your protected gallery...'}
-                {sessionStatus === 'error' && 'Security breach detected. Please refresh.'}
+                {sessionStatus === 'connecting' && brandingConfig.loadingMessages.connecting}
+                {sessionStatus === 'connected' && brandingConfig.loadingMessages.connected}
+                {sessionStatus === 'error' && brandingConfig.loadingMessages.error}
               </motion.p>
               
               {/* Security Level Indicator */}
@@ -265,7 +266,7 @@ const Gallery = () => {
                 className="flex items-center justify-center gap-2 text-blue-300/80"
               >
                 <Lock className="w-4 h-4" />
-                <span className="text-sm font-medium">Ultra-Secure Personal Vault</span>
+                <span className="text-sm font-medium">{brandingConfig.vaultDescription}</span>
                 <Lock className="w-4 h-4" />
               </motion.div>
               
@@ -305,13 +306,13 @@ const Gallery = () => {
         <div className="bg-green-500/20 backdrop-blur-sm border border-green-500/30 rounded-full px-4 py-2">
           <div className="flex items-center gap-2 text-green-300">
             <Shield className="w-4 h-4" />
-            <span className="text-sm font-medium">Secure Gallery</span>
+            <span className="text-sm font-medium">{brandingConfig.statusLabels.secureGallery}</span>
           </div>
         </div>
         <div className="bg-blue-500/20 backdrop-blur-sm border border-blue-500/30 rounded-full px-4 py-2">
           <div className="flex items-center gap-2 text-blue-300">
             <Lock className="w-4 h-4" />
-            <span className="text-sm font-medium">Protected Images</span>
+            <span className="text-sm font-medium">{brandingConfig.statusLabels.protectedImages}</span>
           </div>
         </div>
       </motion.div>
@@ -339,10 +340,10 @@ const Gallery = () => {
           className="text-6xl lg:text-8xl font-black mb-6"
         >
           <span className="bg-gradient-to-r from-white via-blue-200 to-indigo-200 bg-clip-text text-transparent">
-            Vault
+            {brandingConfig.brandNamePart1}
           </span>
           <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-blue-600 bg-clip-text text-transparent">
-            Secure
+            {brandingConfig.brandNamePart2}
           </span>
         </motion.h1>
         
@@ -352,7 +353,7 @@ const Gallery = () => {
           transition={{ delay: 0.5, duration: 0.8 }}
           className="text-2xl text-blue-200 mb-4 max-w-2xl mx-auto"
         >
-          Your memories, safeguarded with military-grade protection
+          {brandingConfig.tagline}
         </motion.p>
         
         <motion.div 
@@ -362,7 +363,7 @@ const Gallery = () => {
           className="flex items-center justify-center gap-2 text-blue-300"
         >
           <Lock className="w-5 h-5" />
-          <span className="text-lg">Ultra-Secure Personal Vault</span>
+          <span className="text-lg">{brandingConfig.vaultDescription}</span>
           <Lock className="w-5 h-5" />
         </motion.div>
         
@@ -372,7 +373,7 @@ const Gallery = () => {
           transition={{ delay: 0.9, duration: 0.8 }}
           className="mt-4 text-sm text-blue-400/80"
         >
-          Security Level: {securityLevel.toUpperCase()} • Protected Gallery • Token-Based Access: ENABLED
+          {brandingConfig.securityLevel.prefix} {securityLevel.toUpperCase()} {brandingConfig.securityLevel.suffix}
         </motion.div>
       </motion.div>
 
@@ -423,7 +424,7 @@ const Gallery = () => {
 								<div className="absolute top-0.5 right-0.5 bg-blue-500/20 backdrop-blur-sm rounded-full p-0.5 border border-blue-500/30">
 									<div className="flex items-center gap-0.5">
 										<Shield className="w-1.5 h-1.5 text-blue-300" />
-										<span className="text-[6px] text-blue-300 font-thin opacity-50">secure</span>
+										<span className="text-[6px] text-blue-300 font-thin opacity-50">{brandingConfig.watermarkText}</span>
 									</div>
 								</div>
                   
