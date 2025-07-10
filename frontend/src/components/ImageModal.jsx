@@ -259,7 +259,7 @@ const ImageModal = ({ image, isOpen, onClose, onNavigate, canNavigate, onLike })
               </motion.div>
               
               {/* Security Watermark */}
-              <div className="absolute top-4 right-4 bg-blue-500/30 backdrop-blur-sm rounded-lg px-3 py-2 border border-blue-500/40">
+<div className="absolute top-1 right-1 bg-blue-500/20 backdrop-blur-sm rounded p-1 border border-blue-500/30">
                 <div className="flex items-center gap-2 text-blue-200">
                   <Shield className="w-5 h-5" />
                   <span className="text-sm font-semibold">VAULTSECURE PROTECTED</span>
