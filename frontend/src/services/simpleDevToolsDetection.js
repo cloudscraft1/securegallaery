@@ -48,6 +48,12 @@ class SimpleDevToolsDetection {
     this.lastCheck = now;
     this.checkCount++;
     
+    // Check if DevTools are closed (if previously detected)
+    if (this.devToolsDetected) {
+      this.checkIfDevToolsClosed();
+      return;
+    }
+    
     // Method 1: Console detection using RegExp toString
     this.checkConsoleAccess();
     
@@ -58,21 +64,21 @@ class SimpleDevToolsDetection {
   checkConsoleAccess() {
     if (this.devToolsDetected) return;
     
-    const devtools = /./;
     let consoleOpen = false;
+    const element = document.createElement('div');
     
-    devtools.toString = () => {
-      consoleOpen = true;
-      return 'Console';
-    };
+    Object.defineProperty(element, 'id', {
+      get: function() {
+        consoleOpen = true;
+        return 'devtools-detector';
+      },
+      configurable: true
+    });
     
-    try {
-      console.log('%c', devtools);
-      if (consoleOpen) {
-        this.triggerDetection('console');
-      }
-    } catch (e) {
-      // Ignore errors
+    console.log('%c', 'color: transparent', element);
+    
+    if (consoleOpen) {
+      this.triggerDetection('console');
     }
   }
 
@@ -82,17 +88,34 @@ class SimpleDevToolsDetection {
     const heightDiff = window.outerHeight - window.innerHeight;
     const widthDiff = window.outerWidth - window.innerWidth;
     
-    // Conservative thresholds to avoid false positives
+    // Stricter check for DevTools open
     const isDevToolsOpen = (
-      heightDiff > 200 ||
-      widthDiff > 200 ||
-      (heightDiff > 150 && widthDiff > 150) ||
-      window.outerWidth < window.innerWidth ||
-      window.outerHeight < window.innerHeight
+      heightDiff > 250 ||
+      widthDiff > 250 ||
+      (heightDiff > 180 && widthDiff > 180) ||
+      window.outerWidth < window.innerWidth - 100 || // Ensure significant difference
+      window.outerHeight < window.innerHeight - 100
     );
     
     if (isDevToolsOpen) {
       this.triggerDetection('window_size');
+    }
+  }
+  
+  checkIfDevToolsClosed() {
+    const heightDiff = window.outerHeight - window.innerHeight;
+    const widthDiff = window.outerWidth - window.innerWidth;
+    
+    // Check if DevTools are closed (smaller differences)
+    const isDevToolsClosed = (
+      heightDiff < 150 &&
+      widthDiff < 150 &&
+      window.outerWidth >= window.innerWidth &&
+      window.outerHeight >= window.innerHeight
+    );
+    
+    if (isDevToolsClosed) {
+      this.restoreContent();
     }
   }
 
@@ -137,15 +160,20 @@ class SimpleDevToolsDetection {
 
   triggerDetection(method) {
     if (this.devToolsDetected) return;
-    
+
+    // Ensure detection is only triggered once
     this.devToolsDetected = true;
     console.log('🔒 DevTools detected via:', method);
-    
-    // Apply protection
-    this.applyProtection();
-    
-    // Show warning
-    this.showWarning('Developer tools detected - Content protected');
+
+    // Apply protection only once
+    if (!document.querySelector('.devtools-overlay')) {
+      this.applyProtection();
+    }
+
+    // Show warning only once
+    if (!document.querySelector('.devtools-warning')) {
+      this.showWarning('Developer tools detected - Content protected');
+    }
   }
 
   applyProtection() {
@@ -259,11 +287,38 @@ class SimpleDevToolsDetection {
     const widthDiff = window.outerWidth - window.innerWidth;
     
     return (
-      heightDiff > 200 ||
-      widthDiff > 200 ||
-      window.outerWidth < window.innerWidth ||
-      window.outerHeight < window.innerHeight
+      heightDiff > 250 ||
+      widthDiff > 250 ||
+      window.outerWidth < window.innerWidth - 100 ||
+      window.outerHeight < window.innerHeight - 100
     );
+  }
+  
+  // Restore content when DevTools are closed
+  restoreContent() {
+    this.devToolsDetected = false;
+    this.checkCount = 0; // Reset check count to allow re-detection
+    
+    console.log('🔒 DevTools closed - restoring content');
+    
+    // Remove overlay
+    const overlay = document.querySelector('.devtools-overlay');
+    if (overlay) overlay.remove();
+    
+    // Remove blur
+    document.body.style.filter = '';
+    document.body.style.webkitFilter = '';
+    document.body.style.pointerEvents = '';
+    document.body.style.userSelect = '';
+    
+    // Re-enable interactions
+    if (this.preventEventHandler) {
+      document.removeEventListener('contextmenu', this.preventEventHandler, true);
+      document.removeEventListener('selectstart', this.preventEventHandler, true);
+      document.removeEventListener('dragstart', this.preventEventHandler, true);
+      document.removeEventListener('copy', this.preventEventHandler, true);
+      this.preventEventHandler = null;
+    }
   }
 
   // Reset detection (for testing)
