@@ -52,16 +52,25 @@ class MinimalSecurityService {
   preventDevTools() {
     let devToolsCheckCount = 0;
 
-    // Simple and effective devtools detection
+    // Enhanced devtools detection with multiple methods
     const checkDevTools = () => {
-      const threshold = 120; // Balanced threshold
+      const threshold = 100; // More sensitive threshold
       const heightDiff = window.outerHeight - window.innerHeight;
       const widthDiff = window.outerWidth - window.innerWidth;
 
-      // Check if devtools are open
-      if (heightDiff > threshold || widthDiff > threshold) {
+      // Multiple detection conditions
+      const devToolsOpen = 
+        heightDiff > threshold || 
+        widthDiff > threshold ||
+        (window.outerWidth - window.innerWidth > 160) ||
+        (window.outerHeight - window.innerHeight > 160);
+
+      if (devToolsOpen) {
         devToolsCheckCount++;
-        if (devToolsCheckCount > 2 && !this.devToolsDetected) {
+        console.log('🔒 DevTools check', devToolsCheckCount, 'Height diff:', heightDiff, 'Width diff:', widthDiff);
+        
+        if (devToolsCheckCount > 1 && !this.devToolsDetected) {
+          console.log('🔒 DevTools detected! Triggering protection...');
           this.devToolsDetected = true;
           this.handleDevToolsDetection();
           this.reportViolation('Developer tools detected');
@@ -69,14 +78,49 @@ class MinimalSecurityService {
       } else {
         devToolsCheckCount = 0;
         if (this.devToolsDetected) {
+          console.log('🔒 DevTools closed! Restoring content...');
           this.devToolsDetected = false;
           this.restoreContent();
         }
       }
     };
 
-    // Check every 1 second (not too aggressive)
-    setInterval(checkDevTools, 1000);
+    // Check every 500ms (more frequent for better detection)
+    setInterval(checkDevTools, 500);
+
+    // Additional detection method using element inspection
+    const detectDevToolsAdvanced = () => {
+      let devtools = false;
+      const element = document.createElement('div');
+      element.style.fontSize = '0';
+      
+      Object.defineProperty(element, 'id', {
+        get: function() {
+          devtools = true;
+          return 'devtools-detection';
+        },
+        configurable: true
+      });
+      
+      // This will trigger the getter if devtools are open
+      console.log('%c', 'color: transparent', element);
+      
+      if (devtools && !this.devToolsDetected) {
+        console.log('🔒 DevTools detected via advanced method!');
+        this.devToolsDetected = true;
+        this.handleDevToolsDetection();
+        this.reportViolation('Developer tools detected (advanced)');
+      }
+    };
+    
+    // Check with advanced method every 2 seconds
+    setInterval(() => {
+      try {
+        detectDevToolsAdvanced();
+      } catch (e) {
+        // Ignore errors
+      }
+    }, 2000);
 
     // Only block ESSENTIAL developer tool shortcuts (don't break normal functionality)
     document.addEventListener('keydown', (e) => {
@@ -121,16 +165,22 @@ class MinimalSecurityService {
       }
     });
 
-    // Simple debugger detection (not too aggressive)
+    // Enhanced debugger detection
     let debuggerCheckCount = 0;
     const checkDebugger = () => {
       try {
         const start = performance.now();
         debugger;
         const end = performance.now();
+        
+        console.log('🔒 Debugger check - time diff:', end - start, 'ms');
+        
         if (end - start > 100) {
           debuggerCheckCount++;
-          if (debuggerCheckCount > 2 && !this.devToolsDetected) {
+          console.log('🔒 Debugger detected! Count:', debuggerCheckCount);
+          
+          if (debuggerCheckCount > 1 && !this.devToolsDetected) {
+            console.log('🔒 DevTools detected via debugger!');
             this.devToolsDetected = true;
             this.handleDevToolsDetection();
             this.reportViolation('Debugger detected');
@@ -143,8 +193,33 @@ class MinimalSecurityService {
       }
     };
     
-    // Check debugger every 5 seconds (not too frequent)
-    setInterval(checkDebugger, 5000);
+    // Check debugger every 2 seconds (more frequent)
+    setInterval(checkDebugger, 2000);
+    
+    // Force detection on first load
+    setTimeout(() => {
+      console.log('🔒 Running initial detection checks...');
+      checkDevTools();
+      checkDebugger();
+      detectDevToolsAdvanced();
+    }, 1000);
+    
+    // Test detection immediately on page load
+    const testDetection = () => {
+      const heightDiff = window.outerHeight - window.innerHeight;
+      const widthDiff = window.outerWidth - window.innerWidth;
+      console.log('🔒 Initial detection test - Height diff:', heightDiff, 'Width diff:', widthDiff);
+      
+      if (heightDiff > 100 || widthDiff > 100) {
+        console.log('🔒 DevTools may already be open!');
+        this.devToolsDetected = true;
+        this.handleDevToolsDetection();
+        this.reportViolation('Developer tools detected on load');
+      }
+    };
+    
+    // Run test after a short delay
+    setTimeout(testDetection, 500);
   }
 
   // Handle developer tools detection - balanced approach
