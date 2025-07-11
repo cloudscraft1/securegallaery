@@ -301,18 +301,18 @@ const Gallery = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="fixed top-4 right-4 z-50 flex flex-col gap-2"
+        className="fixed top-2 right-2 sm:top-4 sm:right-4 z-50 flex flex-col gap-1 sm:gap-2"
       >
-        <div className="bg-green-500/20 backdrop-blur-sm border border-green-500/30 rounded-full px-4 py-2">
-          <div className="flex items-center gap-2 text-green-300">
-            <Shield className="w-4 h-4" />
-            <span className="text-sm font-medium">{brandingConfig.statusLabels.secureGallery}</span>
+        <div className="bg-green-500/20 backdrop-blur-sm border border-green-500/30 rounded-full px-2 sm:px-4 py-1 sm:py-2">
+          <div className="flex items-center gap-1 sm:gap-2 text-green-300">
+            <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="text-xs sm:text-sm font-medium hidden sm:inline">{brandingConfig.statusLabels.secureGallery}</span>
           </div>
         </div>
-        <div className="bg-blue-500/20 backdrop-blur-sm border border-blue-500/30 rounded-full px-4 py-2">
-          <div className="flex items-center gap-2 text-blue-300">
-            <Lock className="w-4 h-4" />
-            <span className="text-sm font-medium">{brandingConfig.statusLabels.protectedImages}</span>
+        <div className="bg-blue-500/20 backdrop-blur-sm border border-blue-500/30 rounded-full px-2 sm:px-4 py-1 sm:py-2">
+          <div className="flex items-center gap-1 sm:gap-2 text-blue-300">
+            <Lock className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="text-xs sm:text-sm font-medium hidden sm:inline">{brandingConfig.statusLabels.protectedImages}</span>
           </div>
         </div>
       </motion.div>
@@ -322,13 +322,13 @@ const Gallery = () => {
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="relative z-10 text-center py-16"
+        className="relative z-10 text-center py-8 sm:py-12 lg:py-16 px-4"
       >
-        <div className="inline-flex items-center justify-center mb-6">
+        <div className="inline-flex items-center justify-center mb-4 sm:mb-6">
           <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full blur opacity-75 animate-pulse"></div>
-            <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 p-4 rounded-full">
-              <Shield className="w-12 h-12 text-white" />
+            <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full blur opacity-75 animate-pulse"></div>
+            <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 p-2 sm:p-4 rounded-full">
+              <Shield className="w-8 h-8 sm:w-12 sm:h-12 text-white" />
             </div>
           </div>
         </div>
@@ -337,7 +337,7 @@ const Gallery = () => {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.8 }}
-          className="text-6xl lg:text-8xl font-black mb-6"
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-black mb-4 sm:mb-6 leading-tight"
         >
           <span className="bg-gradient-to-r from-white via-blue-200 to-indigo-200 bg-clip-text text-transparent">
             {brandingConfig.brandNamePart1}
@@ -351,7 +351,7 @@ const Gallery = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.8 }}
-          className="text-2xl text-blue-200 mb-4 max-w-2xl mx-auto"
+          className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-blue-200 mb-3 sm:mb-4 max-w-xs sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-auto px-4"
         >
           {brandingConfig.tagline}
         </motion.p>
@@ -360,25 +360,25 @@ const Gallery = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.7, duration: 0.8 }}
-          className="flex items-center justify-center gap-2 text-blue-300"
+          className="flex items-center justify-center gap-1 sm:gap-2 text-blue-300 flex-wrap"
         >
-          <Lock className="w-5 h-5" />
-          <span className="text-lg">{brandingConfig.vaultDescription}</span>
-          <Lock className="w-5 h-5" />
+          <Lock className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5" />
+          <span className="text-xs sm:text-sm md:text-base lg:text-lg text-center">{brandingConfig.vaultDescription}</span>
+          <Lock className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5" />
         </motion.div>
         
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.9, duration: 0.8 }}
-          className="mt-4 text-sm text-blue-400/80"
+          className="mt-2 sm:mt-4 text-xs sm:text-sm text-blue-400/80 px-4"
         >
           {brandingConfig.securityLevel.prefix} {securityLevel.toUpperCase()} {brandingConfig.securityLevel.suffix}
         </motion.div>
       </motion.div>
 
       {/* Gallery Grid */}
-      <div className="relative z-10 w-full pb-16">
+      <div className="relative z-10 w-full pb-8 sm:pb-16">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
