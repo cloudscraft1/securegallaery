@@ -120,7 +120,7 @@ class ComprehensiveSecurityService {
 
 // Method 1: Enhanced Resize Detection
   setupEnhancedResizeDetection() {
-    const RESIZE_THRESHOLD = 160;
+    const RESIZE_THRESHOLD = 300; // Increased threshold to reduce false positives
     let previousOuterWidth = window.outerWidth;
     let previousOuterHeight = window.outerHeight;
 
@@ -130,6 +130,7 @@ class ComprehensiveSecurityService {
       const isDevToolsOpen = widthChanged || heightChanged;
 
       if (isDevToolsOpen && !this.devToolsDetected) {
+        console.log('🔒 Resize detected - Width:', window.outerWidth, 'Height:', window.outerHeight);
         this.triggerDevToolsDetection('enhanced_resize');
         previousOuterWidth = window.outerWidth;
         previousOuterHeight = window.outerHeight;
@@ -139,7 +140,7 @@ class ComprehensiveSecurityService {
     };
 
     window.addEventListener('resize', resizeCheck);
-    this.intervals.push(setInterval(resizeCheck, 300)); // For browsers without resize events
+    // Remove interval check to prevent constant triggering
   }
 
   checkWindowSize() {
@@ -162,7 +163,7 @@ class ComprehensiveSecurityService {
     }
   }
 
-  // Method 2: Console Detection
+  // Method 2: Console Detection (Reduced frequency)
   setupConsoleDetection() {
     const interval = setInterval(() => {
       let devtoolsOpen = false;
@@ -182,25 +183,15 @@ class ComprehensiveSecurityService {
         console.log('🔒 DevTools detected via console!');
         this.triggerDevToolsDetection('console_access', {});
       }
-    }, 1000);
+    }, 3000); // Reduced frequency to 3 seconds
     
     this.intervals.push(interval);
   }
 
-  // Method 3: Debugger Detection (Enhanced)
+  // Method 3: Debugger Detection (Disabled - too aggressive)
   setupDebuggerDetection() {
-    const detectDebugger = () => {
-      const start = performance.now();
-      debugger;
-      const end = performance.now();
-
-      if (end - start > 100) {
-        this.triggerDevToolsDetection('enhanced_debugger');
-      }
-    };
-
-    const interval = setInterval(detectDebugger, 2000);
-    this.intervals.push(interval);
+    // Disabled to reduce false positives
+    console.log('🔒 Debugger detection disabled to prevent false positives');
   }
 
   // Method 4: Performance Analysis
@@ -306,82 +297,63 @@ class ComprehensiveSecurityService {
     this.intervals.push(interval);
   }
   
-  // Method 4: Firefox DevTools Detection
+  // Method 4: Firefox DevTools Detection (Simplified)
   setupFirefoxDetection() {
     const interval = setInterval(() => {
-      if (typeof window.navigator.webdriver !== 'undefined' || 
-          window.outerHeight - window.innerHeight > 200 ||
-          window.outerWidth - window.innerWidth > 200) {
+      if (window.outerHeight - window.innerHeight > 250 ||
+          window.outerWidth - window.innerWidth > 250) {
         if (!this.devToolsDetected) {
+          console.log('🔒 Firefox DevTools detected - Height diff:', window.outerHeight - window.innerHeight, 'Width diff:', window.outerWidth - window.innerWidth);
           this.triggerDevToolsDetection('firefox_detection');
         }
       }
-    }, 1000);
+    }, 2000); // Reduced frequency
     
     this.intervals.push(interval);
   }
 
-  // Method 5: Orientation Detection (Mobile)
+  // Method 5: Orientation Detection (Disabled - causes false positives)
   setupOrientationDetection() {
-    let initialScreenHeight = screen.height;
-    let initialScreenWidth = screen.width;
-    
-    const checkOrientation = () => {
-      const currentScreenHeight = screen.height;
-      const currentScreenWidth = screen.width;
-      
-      // Detect if screen dimensions changed significantly (possible devtools)
-      if (Math.abs(currentScreenHeight - initialScreenHeight) > 100 ||
-          Math.abs(currentScreenWidth - initialScreenWidth) > 100) {
-        if (!this.devToolsDetected) {
-          this.triggerDevToolsDetection('orientation_change');
-        }
-      }
-    };
-    
-    window.addEventListener('orientationchange', checkOrientation);
-    this.intervals.push(setInterval(checkOrientation, 1000));
+    // Disabled to reduce false positives on mobile and desktop
+    console.log('🔒 Orientation detection disabled to prevent false positives');
   }
 
-  // Method 7: Continuous Monitoring
+  // Method 7: Continuous Monitoring (Refined)
   setupContinuousMonitoring() {
     const monitorInterval = setInterval(() => {
       // Multiple detection methods combined
       const heightDiff = window.outerHeight - window.innerHeight;
       const widthDiff = window.outerWidth - window.innerWidth;
       
-      // Check for devtools in different positions
-      const isDevToolsOpen = 
-        heightDiff > 150 || // Bottom devtools
-        widthDiff > 150 ||  // Side devtools
-        (screen.availHeight - window.outerHeight) > 150 || // Top devtools
-        (screen.availWidth - window.outerWidth) > 150; // Side devtools
+      // More conservative thresholds to reduce false positives
+      const isDevToolsOpen = heightDiff > 200 || widthDiff > 200;
       
       if (isDevToolsOpen && !this.devToolsDetected) {
+        console.log('🔒 Continuous monitoring detected DevTools - Height diff:', heightDiff, 'Width diff:', widthDiff);
         this.triggerDevToolsDetection('continuous_monitoring');
       } else if (!isDevToolsOpen && this.devToolsDetected) {
+        console.log('🔒 Continuous monitoring: DevTools closed');
         this.triggerDevToolsClose();
       }
-    }, 500);
+    }, 1000); // Reduced frequency from 500ms to 1000ms
     
     this.intervals.push(monitorInterval);
   }
   
-  // Method 8: Page Visibility API Detection
+  // Method 8: Page Visibility API Detection (Simplified)
   setupPageVisibilityDetection() {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        // Recheck devtools state when page becomes visible
-        setTimeout(() => {
-          this.forceCheckDevTools();
-        }, 100);
+        // Only recheck if already detected to avoid false positives
+        if (this.devToolsDetected) {
+          setTimeout(() => {
+            this.forceCheckDevTools();
+          }, 500);
+        }
       }
     };
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    // Also check on focus
-    window.addEventListener('focus', handleVisibilityChange);
   }
   
   // Trigger DevTools Detection
@@ -602,11 +574,14 @@ class ComprehensiveSecurityService {
       devToolsDetected: this.devToolsDetected
     });
     
-    const isDevToolsOpen = heightDiff > 150 || widthDiff > 150;
+    // Use same conservative thresholds as continuous monitoring
+    const isDevToolsOpen = heightDiff > 200 || widthDiff > 200;
     
     if (isDevToolsOpen && !this.devToolsDetected) {
+      console.log('🔒 Force check: DevTools detected');
       this.triggerDevToolsDetection('manual_check');
     } else if (!isDevToolsOpen && this.devToolsDetected) {
+      console.log('🔒 Force check: DevTools closed');
       this.triggerDevToolsClose();
     }
   }
@@ -614,4 +589,29 @@ class ComprehensiveSecurityService {
 
 // Create and export instance
 const comprehensiveSecurity = new ComprehensiveSecurityService();
+
+// Add debugging utilities to window for testing
+if (typeof window !== 'undefined') {
+  window.debugDevTools = {
+    checkDimensions: () => {
+      const heightDiff = window.outerHeight - window.innerHeight;
+      const widthDiff = window.outerWidth - window.innerWidth;
+      console.log('Current browser dimensions:', {
+        outerHeight: window.outerHeight,
+        innerHeight: window.innerHeight,
+        outerWidth: window.outerWidth,
+        innerWidth: window.innerWidth,
+        heightDiff,
+        widthDiff,
+        devToolsDetected: comprehensiveSecurity.devToolsDetected,
+        isDevToolsOpen: heightDiff > 200 || widthDiff > 200
+      });
+    },
+    forceCheck: () => comprehensiveSecurity.forceCheckDevTools(),
+    getViolations: () => comprehensiveSecurity.getViolations(),
+    disable: () => comprehensiveSecurity.disable(),
+    cleanup: () => comprehensiveSecurity.cleanup()
+  };
+}
+
 export default comprehensiveSecurity;
