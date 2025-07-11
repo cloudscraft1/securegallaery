@@ -264,80 +264,12 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
       };
     };
 
-    // Anti-cloning protection - detect iframe embedding
-    const protectCloning = () => {
-      if (window !== window.top) {
-        handleSecurityViolation('Site embedded in iframe - potential cloning detected');
-        showSecurityAlert('🚨 SECURITY BREACH: Unauthorized embedding detected');
-        window.top.location = window.location;
-      }
-    };
-
-    // Enhanced save/download protection
-    const protectSaving = () => {
-      // Block common save shortcuts
-      document.addEventListener('keydown', (e) => {
-        const blockedSaveKeys = [
-          { ctrl: true, key: 'S' }, // Ctrl+S
-          { ctrl: true, key: 'P' }, // Ctrl+P (print)
-          { ctrl: true, shift: true, key: 'S' }, // Ctrl+Shift+S
-        ];
-
-        const isBlocked = blockedSaveKeys.some(combo => {
-          const ctrlMatch = combo.ctrl ? e.ctrlKey : !combo.ctrl || !e.ctrlKey;
-          const shiftMatch = combo.shift ? e.shiftKey : !combo.shift || !e.shiftKey;
-          const keyMatch = combo.key === e.key;
-          return ctrlMatch && shiftMatch && keyMatch;
-        });
-
-        if (isBlocked) {
-          e.preventDefault();
-          e.stopPropagation();
-          handleSecurityViolation(`Blocked save shortcut: ${e.key}`);
-          showSecurityAlert('🚨 Saving is disabled on this site');
-          return false;
-        }
-      });
-
-      // Block browser menu access
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'F10' || (e.altKey && e.key === 'F10')) {
-          e.preventDefault();
-          handleSecurityViolation('Menu access blocked');
-          showSecurityAlert('🚨 Menu access is disabled');
-          return false;
-        }
-      });
-    };
-
-    // Page protection against copying
-    const protectPageContent = () => {
-      // Disable text selection globally when on protected content
-      document.addEventListener('selectstart', (e) => {
-        if (e.target.closest('.ultra-secure-container')) {
-          e.preventDefault();
-          handleSecurityViolation('Text selection blocked');
-          return false;
-        }
-      });
-
-      // Block print functionality
-      window.addEventListener('beforeprint', (e) => {
-        e.preventDefault();
-        handleSecurityViolation('Print attempt blocked');
-        showSecurityAlert('🚨 Printing is disabled on this site');
-      });
-    };
-
-    // Activate all protection methods
+    // Activate all protection methods (temporarily disabled for debugging)
     detectScreenshot();
-    detectDevTools(); // Enable developer tools detection
+    // detectDevTools(); // Disabled to prevent false positives
     protectDOM();
     protectKeyboard();
     protectNetwork();
-    protectCloning();
-    protectSaving();
-    protectPageContent();
 
     return () => {
       // Cleanup function
