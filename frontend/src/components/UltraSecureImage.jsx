@@ -11,10 +11,18 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
 
   // Advanced protection measures
   const activateUltraProtection = useCallback(() => {
+    console.log('🔒 UltraSecureImage: Activating ultra protection...');
     const canvas = canvasRef.current;
     const container = containerRef.current;
     
-    if (!canvas || !container) return;
+    console.log('🔒 UltraSecureImage: Checking refs:', { hasCanvas: !!canvas, hasContainer: !!container });
+    
+    if (!canvas || !container) {
+      console.error('🔒 UltraSecureImage: Missing canvas or container refs, cannot activate protection');
+      return;
+    }
+    
+    console.log('🔒 UltraSecureImage: Refs validated, proceeding with protection activation...');
 
     // 1. Disable canvas data extraction completely
     const originalToDataURL = canvas.toDataURL;
@@ -327,11 +335,20 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
       ];
       
       const handleKeyDown = (e) => {
+        console.log('🔒 Keyboard event detected:', { key: e.key, ctrl: e.ctrlKey, shift: e.shiftKey, alt: e.altKey });
+        
         const isBlocked = blockedShortcuts.some(shortcut => {
           if (e.key === shortcut.key) {
-            const ctrlMatch = shortcut.ctrl ? e.ctrlKey : !e.ctrlKey;
-            const shiftMatch = shortcut.shift ? e.shiftKey : !e.shiftKey;
-            const altMatch = shortcut.alt ? e.altKey : !e.altKey;
+            const ctrlMatch = shortcut.ctrl ? e.ctrlKey : (shortcut.ctrl === false ? !e.ctrlKey : true);
+            const shiftMatch = shortcut.shift ? e.shiftKey : (shortcut.shift === false ? !e.shiftKey : true);
+            const altMatch = shortcut.alt ? e.altKey : (shortcut.alt === false ? !e.altKey : true);
+            
+            console.log('🔒 Checking shortcut:', { 
+              shortcut: shortcut.key, 
+              required: { ctrl: shortcut.ctrl, shift: shortcut.shift, alt: shortcut.alt },
+              actual: { ctrl: e.ctrlKey, shift: e.shiftKey, alt: e.altKey },
+              matches: { ctrl: ctrlMatch, shift: shiftMatch, alt: altMatch }
+            });
             
             return ctrlMatch && shiftMatch && altMatch;
           }
@@ -339,14 +356,15 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
         });
         
         if (isBlocked) {
+          console.log('🔒 BLOCKING keyboard shortcut!');
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
           
           const shortcut = blockedShortcuts.find(s => {
-            const ctrlMatch = s.ctrl ? e.ctrlKey : !e.ctrlKey;
-            const shiftMatch = s.shift ? e.shiftKey : !e.shiftKey;
-            const altMatch = s.alt ? e.altKey : !e.altKey;
+            const ctrlMatch = s.ctrl ? e.ctrlKey : (s.ctrl === false ? !e.ctrlKey : true);
+            const shiftMatch = s.shift ? e.shiftKey : (s.shift === false ? !e.shiftKey : true);
+            const altMatch = s.alt ? e.altKey : (s.alt === false ? !e.altKey : true);
             return e.key === s.key && ctrlMatch && shiftMatch && altMatch;
           });
           
@@ -439,37 +457,147 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
       });
     };
 
-    // 5. Smart keyboard shortcuts protection (only when hovering protected content)
-    const protectKeyboard = () => {
+    // 5. Enhanced clipboard and printing protection
+    const protectClipboardAndPrint = () => {
+      // Advanced clipboard monitoring
+      const clipboardHandler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleSecurityViolation(`Clipboard operation blocked: ${e.type}`);
+        return false;
+      };
+
+      // Prevent clipboard operations globally when on protected content
+      ['copy', 'cut', 'paste'].forEach(event => {
+        document.addEventListener(event, clipboardHandler, { capture: true, passive: false });
+      });
+
+      // Prevent printing
+      window.addEventListener('beforeprint', (e) => {
+        e.preventDefault();
+        handleSecurityViolation('Print attempt blocked');
+        return false;
+      });
+
+      // Block print shortcuts
       document.addEventListener('keydown', (e) => {
-        // Only block when user is focused on protected content
-        const isOnProtectedContent = e.target.closest('.ultra-secure-container') || 
-                                   document.activeElement.closest('.ultra-secure-container');
-        
-        if (!isOnProtectedContent) return; // Allow normal usage elsewhere
-        
-        // Block only critical developer shortcuts
-        const blockedCombos = [
-          { ctrl: true, shift: true, key: 'I' }, // Dev tools
-          { ctrl: true, shift: true, key: 'J' }, // Console
-          { ctrl: true, shift: true, key: 'C' }, // Inspect
-          { key: 'F12' }, // Dev tools
-        ];
-
-        const isBlocked = blockedCombos.some(combo => {
-          const ctrlMatch = combo.ctrl ? e.ctrlKey : !combo.ctrl || !e.ctrlKey;
-          const shiftMatch = combo.shift ? e.shiftKey : !combo.shift || !e.shiftKey;
-          const keyMatch = combo.key === e.key;
-          return ctrlMatch && shiftMatch && keyMatch;
-        });
-
-        if (isBlocked) {
+        if (e.ctrlKey && e.key === 'p') {
           e.preventDefault();
           e.stopPropagation();
-          handleSecurityViolation(`Blocked developer shortcut: ${e.key}`);
+          handleSecurityViolation('Print shortcut blocked');
           return false;
         }
+      }, { capture: true, passive: false });
+
+      return () => {
+        ['copy', 'cut', 'paste'].forEach(event => {
+          document.removeEventListener(event, clipboardHandler, { capture: true });
+        });
+      };
+    };
+
+    // 6. Advanced drag and drop protection
+    const protectDragDrop = () => {
+      const dragHandler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleSecurityViolation(`Drag/drop blocked: ${e.type}`);
+        return false;
+      };
+
+      // Prevent all drag and drop operations
+      ['dragstart', 'drag', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop'].forEach(event => {
+        document.addEventListener(event, dragHandler, { capture: true, passive: false });
       });
+
+      return () => {
+        ['dragstart', 'drag', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop'].forEach(event => {
+          document.removeEventListener(event, dragHandler, { capture: true });
+        });
+      };
+    };
+
+    // 7. Advanced timing attack detection
+    const protectTimingAttacks = () => {
+      const originalNow = performance.now;
+      const originalDate = Date.now;
+      
+      // Add jitter to timing functions to prevent timing attacks
+      performance.now = function() {
+        const jitter = Math.random() * 2 - 1; // -1 to 1 ms jitter
+        return originalNow.call(this) + jitter;
+      };
+      
+      Date.now = function() {
+        const jitter = Math.random() * 10 - 5; // -5 to 5 ms jitter
+        return originalDate.call(this) + jitter;
+      };
+
+      return () => {
+        performance.now = originalNow;
+        Date.now = originalDate;
+      };
+    };
+
+    // 8. Source code obfuscation detection
+    const protectSourceCode = () => {
+      // Detect attempts to view source
+      document.addEventListener('keydown', (e) => {
+        // Ctrl+U (view source)
+        if (e.ctrlKey && e.key === 'u') {
+          e.preventDefault();
+          handleSecurityViolation('View source attempt blocked');
+          return false;
+        }
+      }, { capture: true, passive: false });
+
+      // Obfuscate sensitive DOM elements
+      const obfuscateElements = () => {
+        const sensitiveElements = document.querySelectorAll('.ultra-secure-container, canvas, img');
+        sensitiveElements.forEach(el => {
+          // Add random attributes to confuse inspection
+          el.setAttribute('data-' + Math.random().toString(36).substr(2, 9), 'obfuscated');
+          
+          // Add fake event listeners
+          el.addEventListener('click', () => {}, { passive: true });
+        });
+      };
+
+      obfuscateElements();
+      const obfuscationInterval = setInterval(obfuscateElements, 5000);
+
+      return () => {
+        clearInterval(obfuscationInterval);
+      };
+    };
+
+    // 9. Advanced debugger detection
+    const protectDebugger = () => {
+      let debuggerDetected = false;
+      
+      const checkDebugger = () => {
+        const start = performance.now();
+        debugger; // This will pause if debugger is open
+        const end = performance.now();
+        
+        if (end - start > 100) { // If execution was paused
+          debuggerDetected = true;
+          handleSecurityViolation('Debugger detected and blocked');
+          // Blur the entire page
+          document.body.style.filter = 'blur(50px)';
+          showSecurityAlert('⚠️ SECURITY ALERT: Debugging tools detected!');
+        }
+      };
+
+      // Check for debugger every 2 seconds
+      const debuggerInterval = setInterval(checkDebugger, 2000);
+
+      return () => {
+        clearInterval(debuggerInterval);
+        if (debuggerDetected) {
+          document.body.style.filter = 'none';
+        }
+      };
     };
 
     // 6. Smart network protection (monitor but don't break functionality)
@@ -488,17 +616,32 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
     };
 
     // Activate all protection methods
+    console.log('🔒 VaultSecure: Activating all security layers...');
+    
     detectScreenshot();
     const cleanupDevTools = detectDevTools(); // Enable enhanced DevTools detection
     protectDOM();
     const cleanupKeyboardShortcuts = blockDevShortcuts(); // Enable comprehensive keyboard blocking
+    const cleanupClipboard = protectClipboardAndPrint(); // Enable clipboard and print protection
+    const cleanupDragDrop = protectDragDrop(); // Enable drag/drop protection
+    const cleanupTiming = protectTimingAttacks(); // Enable timing attack protection
+    const cleanupSourceCode = protectSourceCode(); // Enable source code protection
+    const cleanupDebugger = protectDebugger(); // Enable debugger detection
     protectNetwork();
+
+    console.log('🔒 VaultSecure: All security layers activated successfully');
 
     return () => {
       // Cleanup function
+      console.log('🔒 VaultSecure: Cleaning up security layers...');
       window.fetch = window.fetch.original || window.fetch;
       if (cleanupDevTools) cleanupDevTools();
       if (cleanupKeyboardShortcuts) cleanupKeyboardShortcuts();
+      if (cleanupClipboard) cleanupClipboard();
+      if (cleanupDragDrop) cleanupDragDrop();
+      if (cleanupTiming) cleanupTiming();
+      if (cleanupSourceCode) cleanupSourceCode();
+      if (cleanupDebugger) cleanupDebugger();
     };
   }, []);
 
