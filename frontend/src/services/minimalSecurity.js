@@ -369,27 +369,10 @@ class ComprehensiveSecurityService {
     
     console.log('🔒 DevTools detected - applying image protection');
     
-    // Only blur actual images and canvases, not entire site
-    const imageElements = document.querySelectorAll('canvas, img');
-    const galleryItems = document.querySelectorAll('.gallery-item');
-    
-    console.log('🔒 Found', imageElements.length, 'image elements and', galleryItems.length, 'gallery items');
-    
-    // Blur actual image elements
-    imageElements.forEach((img, index) => {
-      console.log('🔒 Blurring image element', index, img.tagName);
-      img.style.filter = 'blur(20px)';
-      img.style.opacity = '0.4';
-      img.style.transition = 'all 0.5s ease';
-    });
-    
-    // Blur gallery items (containing images)
-    galleryItems.forEach((item, index) => {
-      console.log('🔒 Blurring gallery item', index, item.className);
-      item.style.filter = 'blur(20px)';
-      item.style.opacity = '0.4';
-      item.style.transition = 'all 0.5s ease';
-    });
+// Blur entire site for high-level security
+    const bodyElement = document.body;
+    bodyElement.style.filter = 'blur(10px)';
+    bodyElement.style.transition = 'filter 0.5s ease';
     
     // Add simple security overlay only on gallery area
     this.showSecurityOverlay();
@@ -399,48 +382,28 @@ class ComprehensiveSecurityService {
   restoreContent() {
     console.log('🔒 DevTools closed - restoring content');
     
-    // Restore actual image elements
-    const imageElements = document.querySelectorAll('canvas, img');
-    const galleryItems = document.querySelectorAll('.gallery-item');
-    
-    console.log('🔒 Restoring', imageElements.length, 'image elements and', galleryItems.length, 'gallery items');
-    
-    imageElements.forEach((img, index) => {
-      console.log('🔒 Restoring image element', index, img.tagName);
-      img.style.filter = 'none';
-      img.style.opacity = '1';
-      img.style.transition = 'all 0.5s ease';
-    });
-    
-    galleryItems.forEach((item, index) => {
-      console.log('🔒 Restoring gallery item', index, item.className);
-      item.style.filter = 'none';
-      item.style.opacity = '1';
-      item.style.transition = 'all 0.5s ease';
-    });
+// Restore entire site
+    const bodyElement = document.body;
+    bodyElement.style.filter = 'none';
     
     // Remove security overlay
     this.removeSecurityOverlay();
   }
 
-  // Show security overlay - only on gallery area
+  // Show security overlay - covers entire page
   showSecurityOverlay() {
     // Don't add multiple overlays
     if (document.querySelector('.devtools-overlay')) return;
 
-    // Find the gallery area
-    const galleryArea = document.querySelector('.gallery-grid') || document.querySelector('.gallery-item')?.parentElement;
-    if (!galleryArea) return;
-
     const overlay = document.createElement('div');
     overlay.className = 'devtools-overlay';
     overlay.style.cssText = `
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
       z-index: 999998;
       display: flex;
       align-items: center;
@@ -450,22 +413,22 @@ class ComprehensiveSecurityService {
       font-weight: bold;
       font-family: Arial, sans-serif;
       pointer-events: none;
-      border-radius: 10px;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
     `;
     
     overlay.innerHTML = `
-      <div style="text-align: center; padding: 20px; background: rgba(0, 0, 0, 0.8); border-radius: 10px;">
-        <div style="font-size: 24px; margin-bottom: 10px;">🔒</div>
-        <div style="margin-bottom: 8px;">Images Protected</div>
-        <div style="font-size: 12px; opacity: 0.9;">
-          Close developer tools to view images
+      <div style="text-align: center; padding: 30px; background: rgba(0, 0, 0, 0.8); border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <div style="font-size: 48px; margin-bottom: 20px;">🔒</div>
+        <div style="font-size: 24px; margin-bottom: 12px;">Website Protected</div>
+        <div style="font-size: 14px; opacity: 0.9; line-height: 1.4;">
+          Close developer tools to access the website
         </div>
       </div>
     `;
     
-    // Position relative to gallery area
-    galleryArea.style.position = 'relative';
-    galleryArea.appendChild(overlay);
+    // Add to body
+    document.body.appendChild(overlay);
   }
 
   // Remove security overlay
