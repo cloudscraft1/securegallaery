@@ -93,46 +93,53 @@ class ComprehensiveSecurityService {
   initializeAdvancedDevToolsDetection() {
     console.log('🔒 Initializing advanced DevTools detection...');
     
-    // Method 1: Window Size Detection with ResizeObserver
-    this.setupResizeObserver();
+    // Method 1: Enhanced Window Size Detection
+    this.setupEnhancedResizeDetection();
     
-    // Method 2: Console Detection
+    // Method 2: Console Detection (Chrome/Edge)
     this.setupConsoleDetection();
     
-    // Method 3: Debugger Detection
+    // Method 3: Debugger Detection (All browsers)
     this.setupDebuggerDetection();
     
-    // Method 4: Performance Analysis
-    this.setupPerformanceAnalysis();
+    // Method 4: DevTools Object Detection (Firefox)
+    this.setupFirefoxDetection();
     
-    // Method 5: DOM Manipulation Detection
-    this.setupDOMDetection();
+    // Method 5: Orientation Detection (Mobile)
+    this.setupOrientationDetection();
     
     // Method 6: Keyboard Shortcuts
     this.setupKeyboardDetection();
     
-    // Method 7: Firebug Detection
-    this.setupFirebugDetection();
+    // Method 7: Continuous monitoring
+    this.setupContinuousMonitoring();
     
-    // Method 8: Context Detection
-    this.setupContextDetection();
+    // Method 8: Page visibility API
+    this.setupPageVisibilityDetection();
   }
 
-  // Method 1: ResizeObserver for window changes
-  setupResizeObserver() {
-    if (window.ResizeObserver) {
-      const resizeObserver = new ResizeObserver(() => {
-        this.checkWindowSize();
-      });
-      resizeObserver.observe(document.body);
-      this.observers.push(resizeObserver);
-    }
-    
-    // Fallback interval check
-    const interval = setInterval(() => {
-      this.checkWindowSize();
-    }, 300);
-    this.intervals.push(interval);
+// Method 1: Enhanced Resize Detection
+  setupEnhancedResizeDetection() {
+    const RESIZE_THRESHOLD = 160;
+    let previousOuterWidth = window.outerWidth;
+    let previousOuterHeight = window.outerHeight;
+
+    const resizeCheck = () => {
+      const widthChanged = Math.abs(window.outerWidth - previousOuterWidth) > RESIZE_THRESHOLD;
+      const heightChanged = Math.abs(window.outerHeight - previousOuterHeight) > RESIZE_THRESHOLD;
+      const isDevToolsOpen = widthChanged || heightChanged;
+
+      if (isDevToolsOpen && !this.devToolsDetected) {
+        this.triggerDevToolsDetection('enhanced_resize');
+        previousOuterWidth = window.outerWidth;
+        previousOuterHeight = window.outerHeight;
+      } else if (!isDevToolsOpen && this.devToolsDetected) {
+        this.triggerDevToolsClose();
+      }
+    };
+
+    window.addEventListener('resize', resizeCheck);
+    this.intervals.push(setInterval(resizeCheck, 300)); // For browsers without resize events
   }
 
   checkWindowSize() {
@@ -180,21 +187,19 @@ class ComprehensiveSecurityService {
     this.intervals.push(interval);
   }
 
-  // Method 3: Debugger Detection
+  // Method 3: Debugger Detection (Enhanced)
   setupDebuggerDetection() {
-    const interval = setInterval(() => {
+    const detectDebugger = () => {
       const start = performance.now();
       debugger;
       const end = performance.now();
-      
+
       if (end - start > 100) {
-        if (!this.devToolsDetected) {
-          console.log('🔒 DevTools detected via debugger! Time:', end - start, 'ms');
-          this.triggerDevToolsDetection('debugger_timing', { timeDiff: end - start });
-        }
+        this.triggerDevToolsDetection('enhanced_debugger');
       }
-    }, 2000);
-    
+    };
+
+    const interval = setInterval(detectDebugger, 2000);
     this.intervals.push(interval);
   }
 
@@ -301,28 +306,82 @@ class ComprehensiveSecurityService {
     this.intervals.push(interval);
   }
   
-  // Method 8: Context Detection
-  setupContextDetection() {
-    // Check if running in a different context (like devtools)
+  // Method 4: Firefox DevTools Detection
+  setupFirefoxDetection() {
     const interval = setInterval(() => {
-      const threshold = 500;
-      const before = performance.now();
-      
-      // This operation is slower in devtools
-      for (let i = 0; i < 100; i++) {
-        console.log('');
+      if (typeof window.navigator.webdriver !== 'undefined' || 
+          window.outerHeight - window.innerHeight > 200 ||
+          window.outerWidth - window.innerWidth > 200) {
+        if (!this.devToolsDetected) {
+          this.triggerDevToolsDetection('firefox_detection');
+        }
       }
-      
-      const after = performance.now();
-      const timeDiff = after - before;
-      
-      if (timeDiff > threshold && !this.devToolsDetected) {
-        console.log('🔒 DevTools detected via context timing! Time:', timeDiff, 'ms');
-        this.triggerDevToolsDetection('context_timing', { timeDiff });
-      }
-    }, 3000);
+    }, 1000);
     
     this.intervals.push(interval);
+  }
+
+  // Method 5: Orientation Detection (Mobile)
+  setupOrientationDetection() {
+    let initialScreenHeight = screen.height;
+    let initialScreenWidth = screen.width;
+    
+    const checkOrientation = () => {
+      const currentScreenHeight = screen.height;
+      const currentScreenWidth = screen.width;
+      
+      // Detect if screen dimensions changed significantly (possible devtools)
+      if (Math.abs(currentScreenHeight - initialScreenHeight) > 100 ||
+          Math.abs(currentScreenWidth - initialScreenWidth) > 100) {
+        if (!this.devToolsDetected) {
+          this.triggerDevToolsDetection('orientation_change');
+        }
+      }
+    };
+    
+    window.addEventListener('orientationchange', checkOrientation);
+    this.intervals.push(setInterval(checkOrientation, 1000));
+  }
+
+  // Method 7: Continuous Monitoring
+  setupContinuousMonitoring() {
+    const monitorInterval = setInterval(() => {
+      // Multiple detection methods combined
+      const heightDiff = window.outerHeight - window.innerHeight;
+      const widthDiff = window.outerWidth - window.innerWidth;
+      
+      // Check for devtools in different positions
+      const isDevToolsOpen = 
+        heightDiff > 150 || // Bottom devtools
+        widthDiff > 150 ||  // Side devtools
+        (screen.availHeight - window.outerHeight) > 150 || // Top devtools
+        (screen.availWidth - window.outerWidth) > 150; // Side devtools
+      
+      if (isDevToolsOpen && !this.devToolsDetected) {
+        this.triggerDevToolsDetection('continuous_monitoring');
+      } else if (!isDevToolsOpen && this.devToolsDetected) {
+        this.triggerDevToolsClose();
+      }
+    }, 500);
+    
+    this.intervals.push(monitorInterval);
+  }
+  
+  // Method 8: Page Visibility API Detection
+  setupPageVisibilityDetection() {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Recheck devtools state when page becomes visible
+        setTimeout(() => {
+          this.forceCheckDevTools();
+        }, 100);
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Also check on focus
+    window.addEventListener('focus', handleVisibilityChange);
   }
   
   // Trigger DevTools Detection
@@ -363,31 +422,38 @@ class ComprehensiveSecurityService {
     this.restoreContent();
   }
 
-  // Handle developer tools detection - balanced approach
+  // Handle developer tools detection - enhanced approach
   handleDevToolsDetection() {
-    this.showWarning('Developer tools detected - Content protected');
+    console.log('🔒 DevTools detected - applying full site protection');
     
-    console.log('🔒 DevTools detected - applying image protection');
-    
-// Blur entire site for high-level security
+    // Add blur class to body for better control
     const bodyElement = document.body;
+    bodyElement.classList.add('devtools-detected');
     bodyElement.style.filter = 'blur(10px)';
     bodyElement.style.transition = 'filter 0.5s ease';
+    bodyElement.style.pointerEvents = 'none';
     
-    // Add simple security overlay only on gallery area
+    // Show overlay and warning
     this.showSecurityOverlay();
+    this.showWarning('Developer tools detected - Website protected');
   }
 
   // Restore content when dev tools are closed
   restoreContent() {
     console.log('🔒 DevTools closed - restoring content');
     
-// Restore entire site
+    // Remove blur class and styles from body
     const bodyElement = document.body;
+    bodyElement.classList.remove('devtools-detected');
     bodyElement.style.filter = 'none';
+    bodyElement.style.pointerEvents = 'auto';
     
     // Remove security overlay
     this.removeSecurityOverlay();
+    
+    // Remove any existing warnings
+    const existingWarnings = document.querySelectorAll('.security-warning');
+    existingWarnings.forEach(warning => warning.remove());
   }
 
   // Show security overlay - covers entire page
@@ -495,10 +561,54 @@ class ComprehensiveSecurityService {
     return this.violations;
   }
 
+  // Cleanup method to clear intervals and observers
+  cleanup() {
+    // Clear all intervals
+    this.intervals.forEach(interval => clearInterval(interval));
+    this.intervals = [];
+    
+    // Disconnect all observers
+    this.observers.forEach(observer => observer.disconnect());
+    this.observers = [];
+    
+    // Restore content if needed
+    if (this.devToolsDetected) {
+      this.restoreContent();
+      this.devToolsDetected = false;
+    }
+    
+    console.log('🔒 VaultSecure: All detection methods cleaned up');
+  }
+  
   // Disable security if needed
   disable() {
     this.isActive = false;
+    this.cleanup();
     console.log('🔒 VaultSecure: Security protection disabled');
+  }
+  
+  // Force check devtools state (for debugging)
+  forceCheckDevTools() {
+    const heightDiff = window.outerHeight - window.innerHeight;
+    const widthDiff = window.outerWidth - window.innerWidth;
+    
+    console.log('Current dimensions:', {
+      outerHeight: window.outerHeight,
+      innerHeight: window.innerHeight,
+      outerWidth: window.outerWidth,
+      innerWidth: window.innerWidth,
+      heightDiff,
+      widthDiff,
+      devToolsDetected: this.devToolsDetected
+    });
+    
+    const isDevToolsOpen = heightDiff > 150 || widthDiff > 150;
+    
+    if (isDevToolsOpen && !this.devToolsDetected) {
+      this.triggerDevToolsDetection('manual_check');
+    } else if (!isDevToolsOpen && this.devToolsDetected) {
+      this.triggerDevToolsClose();
+    }
   }
 }
 
