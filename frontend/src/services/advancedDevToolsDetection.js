@@ -73,8 +73,8 @@ class AdvancedDevToolsDetection {
     // Method 2: Orientation and resize detection
     this.detectionMethods.set('orientation', this.createOrientationDetector());
     
-    // Method 3: Console detection (limited)
-    this.detectionMethods.set('console', this.createConsoleDetector());
+    // Method 3: Enhanced Console Detection
+    this.detectionMethods.set('console', this.createEnhancedConsoleDetector());
     
     // Method 4: Performance timing detection
     this.detectionMethods.set('performance', this.createPerformanceDetector());
@@ -165,43 +165,68 @@ class AdvancedDevToolsDetection {
     };
   }
 
-  createConsoleDetector() {
-    let consoleAccessCount = 0;
+  createEnhancedConsoleDetector() {
+    let consoleCheckCount = 0;
     const maxConsoleChecks = 3;
     
-    const checkConsole = () => {
-      if (consoleAccessCount >= maxConsoleChecks) return;
+    const checkConsolePanel = () => {
+      if (consoleCheckCount >= maxConsoleChecks) return;
       
+      // Method 1: RegExp toString detection
+      const devtools = /./;
       let devToolsOpen = false;
-      const element = document.createElement('div');
       
-      Object.defineProperty(element, 'id', {
-        get: function() {
-          devToolsOpen = true;
-          return 'devtools-detector';
-        },
-        configurable: true
-      });
+      devtools.toString = () => {
+        devToolsOpen = true;
+        return 'DevTools';
+      };
       
       try {
-        console.log('%c', 'color: transparent', element);
+        console.log('%c', devtools);
         if (devToolsOpen) {
-          consoleAccessCount++;
+          consoleCheckCount++;
           this.processDetection('console', true, { 
-            method: 'property_access',
-            accessCount: consoleAccessCount
+            method: 'panel_detection',
+            checkCount: consoleCheckCount
           });
         }
       } catch (e) {
         // Ignore errors
       }
+      
+      // Method 2: Console API check
+      const consoleCheck = () => {
+        const element = document.createElement('div');
+        Object.defineProperty(element, 'id', {
+          get: function() {
+            devToolsOpen = true;
+            return 'console-detector';
+          },
+          configurable: true
+        });
+        
+        try {
+          console.log('%c', 'color: transparent', element);
+          if (devToolsOpen) {
+            consoleCheckCount++;
+            this.processDetection('console', true, { 
+              method: 'api_detection',
+              checkCount: consoleCheckCount
+            });
+          }
+        } catch (e) {
+          // Ignore errors
+        }
+      };
+      
+      consoleCheck();
     };
     
-    const interval = setInterval(checkConsole, 5000);
+    const interval = setInterval(checkConsolePanel, 3000);
     this.intervals.push(interval);
     
     return {
-      check: checkConsole,
+      check: checkConsolePanel,
       cleanup: () => clearInterval(interval)
     };
   }
@@ -315,6 +340,12 @@ class AdvancedDevToolsDetection {
     if (this.detectionState.falsePositiveCount >= this.config.MAX_FALSE_POSITIVES) {
       return false;
     }
+    // Ensure we only detect when DevTools size changes make sense
+    const validSizeChanges = (data.heightDiff > 0 && data.widthDiff > 0);
+    // Detect if window.innerWidth is greater than a typical screen size
+    const impossibleWidth = (window.innerWidth > 1600 && data.widthDiff > 100);
+    // Combine criteria for strong validation
+    const validConditions = validSizeChanges || impossibleWidth;
     
     // Method-specific validation (less strict for better detection)
     switch (method) {
