@@ -48,31 +48,26 @@ class MinimalSecurityService {
     });
   }
 
-  // Prevent developer tools only
+  // Balanced developer tools prevention - only block devtools, keep site working
   preventDevTools() {
-    let checkCount = 0;
+    let devToolsCheckCount = 0;
 
+    // Simple and effective devtools detection
     const checkDevTools = () => {
-      const threshold = 100; // More sensitive threshold
+      const threshold = 120; // Balanced threshold
       const heightDiff = window.outerHeight - window.innerHeight;
       const widthDiff = window.outerWidth - window.innerWidth;
 
-      // Multiple detection methods
-      const devToolsDetected = 
-        heightDiff > threshold || 
-        widthDiff > threshold ||
-        window.outerWidth - window.innerWidth > threshold ||
-        window.outerHeight - window.innerHeight > threshold;
-
-      if (devToolsDetected) {
-        checkCount++;
-        if (checkCount > 2 && !this.devToolsDetected) {
+      // Check if devtools are open
+      if (heightDiff > threshold || widthDiff > threshold) {
+        devToolsCheckCount++;
+        if (devToolsCheckCount > 2 && !this.devToolsDetected) {
           this.devToolsDetected = true;
           this.handleDevToolsDetection();
           this.reportViolation('Developer tools detected');
         }
       } else {
-        checkCount = 0;
+        devToolsCheckCount = 0;
         if (this.devToolsDetected) {
           this.devToolsDetected = false;
           this.restoreContent();
@@ -80,11 +75,12 @@ class MinimalSecurityService {
       }
     };
 
-    // Check more frequently for better detection
+    // Check every 1 second (not too aggressive)
     setInterval(checkDevTools, 1000);
 
-    // Block F12 key and common dev shortcuts
+    // Only block ESSENTIAL developer tool shortcuts (don't break normal functionality)
     document.addEventListener('keydown', (e) => {
+      // Block F12 key
       if (e.key === 'F12') {
         e.preventDefault();
         this.showWarning('Developer tools access is disabled');
@@ -92,7 +88,7 @@ class MinimalSecurityService {
         return false;
       }
       
-      // Block Ctrl+Shift+I (Inspect)
+      // Block Ctrl+Shift+I (Inspect) - but allow normal Ctrl+I
       if (e.ctrlKey && e.shiftKey && e.key === 'I') {
         e.preventDefault();
         this.showWarning('Developer tools access is disabled');
@@ -100,7 +96,7 @@ class MinimalSecurityService {
         return false;
       }
       
-      // Block Ctrl+Shift+J (Console)
+      // Block Ctrl+Shift+J (Console) - but allow normal Ctrl+J
       if (e.ctrlKey && e.shiftKey && e.key === 'J') {
         e.preventDefault();
         this.showWarning('Developer tools access is disabled');
@@ -108,8 +104,16 @@ class MinimalSecurityService {
         return false;
       }
       
-      // Block Ctrl+U (View Source)
-      if (e.ctrlKey && e.key === 'U') {
+      // Block Ctrl+Shift+C (Inspect Element) - but allow normal Ctrl+C
+      if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+        e.preventDefault();
+        this.showWarning('Developer tools access is disabled');
+        this.reportViolation('Ctrl+Shift+C blocked');
+        return false;
+      }
+      
+      // Block Ctrl+U (View Source) - but allow other Ctrl+U usage
+      if (e.ctrlKey && e.key === 'u') {
         e.preventDefault();
         this.showWarning('View source is disabled');
         this.reportViolation('Ctrl+U blocked');
@@ -117,112 +121,62 @@ class MinimalSecurityService {
       }
     });
 
-    // Additional detection method using console
-    let devtools = {open: false, orientation: null};
-    const threshold2 = 160;
-    
-    setInterval(() => {
-      if (window.outerHeight - window.innerHeight > threshold2 || 
-          window.outerWidth - window.innerWidth > threshold2) {
-        if (!devtools.open) {
-          devtools.open = true;
-          if (!this.devToolsDetected) {
-            this.devToolsDetected = true;
-            this.handleDevToolsDetection();
-            this.reportViolation('Developer tools opened');
-          }
-        }
-      } else {
-        if (devtools.open) {
-          devtools.open = false;
-          if (this.devToolsDetected) {
-            this.devToolsDetected = false;
-            this.restoreContent();
-          }
-        }
-      }
-    }, 500);
-
-    // Console detection method
-    let consoleDetected = false;
-    const detectConsole = () => {
-      let devtools = false;
-      const el = document.createElement('div');
-      el.style.fontSize = '0px';
-      el.style.setProperty('--devtools-detector', 'true');
-      
-      Object.defineProperty(el, 'id', {
-        get: function() {
-          devtools = true;
-          return 'devtools-detector';
-        },
-        configurable: true
-      });
-      
-      console.log(el);
-      
-      if (devtools && !consoleDetected) {
-        consoleDetected = true;
-        if (!this.devToolsDetected) {
-          this.devToolsDetected = true;
-          this.handleDevToolsDetection();
-          this.reportViolation('Console accessed');
-        }
-      }
-    };
-    
-    // Check for console periodically
-    setInterval(detectConsole, 2000);
-    
-    // Detect debugger statement
-    try {
-      setInterval(() => {
+    // Simple debugger detection (not too aggressive)
+    let debuggerCheckCount = 0;
+    const checkDebugger = () => {
+      try {
         const start = performance.now();
         debugger;
         const end = performance.now();
         if (end - start > 100) {
-          if (!this.devToolsDetected) {
+          debuggerCheckCount++;
+          if (debuggerCheckCount > 2 && !this.devToolsDetected) {
             this.devToolsDetected = true;
             this.handleDevToolsDetection();
             this.reportViolation('Debugger detected');
           }
+        } else {
+          debuggerCheckCount = 0;
         }
-      }, 3000);
-    } catch (e) {
-      // Ignore errors
-    }
+      } catch (e) {
+        // Ignore errors
+      }
+    };
+    
+    // Check debugger every 5 seconds (not too frequent)
+    setInterval(checkDebugger, 5000);
   }
 
-  // Handle developer tools detection
+  // Handle developer tools detection - balanced approach
   handleDevToolsDetection() {
     this.showWarning('Developer tools detected - Content protected');
     
-    // Blur all images and add overlay
-    const images = document.querySelectorAll('canvas, img, .gallery-item');
+    // Only blur images, not the entire website
+    const images = document.querySelectorAll('canvas, img');
     images.forEach(img => {
-      img.style.filter = 'blur(25px)';
-      img.style.opacity = '0.3';
-      img.style.transition = 'all 0.3s ease';
+      img.style.filter = 'blur(20px)';
+      img.style.opacity = '0.4';
+      img.style.transition = 'all 0.5s ease';
     });
     
-    // Add security overlay
+    // Add simple security overlay
     this.showSecurityOverlay();
   }
 
   // Restore content when dev tools are closed
   restoreContent() {
-    const images = document.querySelectorAll('canvas, img, .gallery-item');
+    const images = document.querySelectorAll('canvas, img');
     images.forEach(img => {
       img.style.filter = 'none';
       img.style.opacity = '1';
-      img.style.transition = 'all 0.3s ease';
+      img.style.transition = 'all 0.5s ease';
     });
     
     // Remove security overlay
     this.removeSecurityOverlay();
   }
 
-  // Show security overlay
+  // Show security overlay - balanced approach
   showSecurityOverlay() {
     // Don't add multiple overlays
     if (document.querySelector('.devtools-overlay')) return;
@@ -235,25 +189,25 @@ class MinimalSecurityService {
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.6);
       z-index: 999998;
       display: flex;
       align-items: center;
       justify-content: center;
       color: white;
-      font-size: 24px;
+      font-size: 20px;
       font-weight: bold;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(5px);
       font-family: Arial, sans-serif;
       pointer-events: none;
     `;
     
     overlay.innerHTML = `
-      <div style="text-align: center; padding: 20px;">
-        <div style="font-size: 48px; margin-bottom: 20px;">🔒</div>
-        <div style="margin-bottom: 15px;">CONTENT PROTECTED</div>
-        <div style="font-size: 16px; opacity: 0.8;">
-          Close developer tools to continue
+      <div style="text-align: center; padding: 20px; background: rgba(0, 0, 0, 0.7); border-radius: 10px;">
+        <div style="font-size: 32px; margin-bottom: 15px;">🔒</div>
+        <div style="margin-bottom: 10px;">Images Protected</div>
+        <div style="font-size: 14px; opacity: 0.9;">
+          Close developer tools to view images
         </div>
       </div>
     `;

@@ -7,8 +7,8 @@ import minimalSecurity from "./services/minimalSecurity";
 
 function App() {
   useEffect(() => {
-    // Initialize minimal security (screenshot and devtools prevention only)
-    console.log('🔒 VaultSecure: Initializing minimal security protection');
+    // Initialize balanced security (screenshot and devtools prevention only)
+    console.log('🔒 VaultSecure: Initializing balanced security protection');
     // Security service is already initialized automatically
   }, []);
 
