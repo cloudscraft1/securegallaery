@@ -16,11 +16,11 @@ class AdvancedDevToolsDetection {
       falsePositiveCount: 0
     };
     this.config = {
-      DETECTION_THRESHOLD: 4,    // Require multiple consecutive detections
-      NORMAL_THRESHOLD: 3,       // Require multiple consecutive normal states
-      DEBOUNCE_TIME: 300,        // Minimum time between checks
-      MAX_FALSE_POSITIVES: 2,    // Maximum allowed false positives
-      RESET_INTERVAL: 10000      // Reset false positive counter every 10 seconds
+      DETECTION_THRESHOLD: 2,    // Require 2 consecutive detections (less aggressive)
+      NORMAL_THRESHOLD: 2,       // Require 2 consecutive normal states
+      DEBOUNCE_TIME: 200,        // Minimum time between checks
+      MAX_FALSE_POSITIVES: 1,    // Maximum allowed false positives
+      RESET_INTERVAL: 15000      // Reset false positive counter every 15 seconds
     };
     
     this.init();
@@ -51,15 +51,15 @@ class AdvancedDevToolsDetection {
     const pixelRatio = window.devicePixelRatio || 1;
     const screenArea = screenWidth * screenHeight;
     
-    // Adjust thresholds based on screen size and pixel ratio
-    const baseThreshold = screenArea > (1920 * 1080) ? 200 : 160;
-    const adjustedThreshold = Math.floor(baseThreshold * pixelRatio);
+    // More lenient thresholds for better detection without being too aggressive
+    const baseThreshold = screenArea > (1920 * 1080) ? 180 : 140;
+    const adjustedThreshold = Math.floor(baseThreshold * Math.min(pixelRatio, 1.5));
     
     this.thresholds = {
-      height: Math.max(adjustedThreshold, 140),
-      width: Math.max(adjustedThreshold, 140),
-      combined: Math.max(Math.floor(adjustedThreshold * 0.7), 100),
-      small: Math.max(Math.floor(adjustedThreshold * 0.5), 80)
+      height: Math.max(adjustedThreshold, 120),
+      width: Math.max(adjustedThreshold, 120),
+      combined: Math.max(Math.floor(adjustedThreshold * 0.6), 80),
+      small: Math.max(Math.floor(adjustedThreshold * 0.4), 60)
     };
     
     console.log('🔒 Dynamic thresholds calculated:', this.thresholds);
@@ -107,7 +107,7 @@ class AdvancedDevToolsDetection {
       ];
       
       const detectionScore = criteria.filter(Boolean).length;
-      const isDetected = detectionScore >= 2; // Require at least 2 criteria
+      const isDetected = detectionScore >= 1; // Require at least 1 criteria for faster detection
       
       this.processDetection('windowSize', isDetected, {
         heightDiff,
@@ -316,14 +316,16 @@ class AdvancedDevToolsDetection {
       return false;
     }
     
-    // Method-specific validation
+    // Method-specific validation (less strict for better detection)
     switch (method) {
       case 'windowSize':
-        return data.detectionScore >= 2 && (data.heightDiff > 100 || data.widthDiff > 100);
+        return data.detectionScore >= 1 && (data.heightDiff > 80 || data.widthDiff > 80);
       case 'console':
         return data.accessCount <= 3; // Limit console-based detections
       case 'performance':
-        return data.duration > 30; // More conservative threshold
+        return data.duration > 25; // More lenient threshold
+      case 'keyboard':
+        return true; // Always validate keyboard detection
       default:
         return true;
     }
@@ -367,34 +369,92 @@ class AdvancedDevToolsDetection {
     body.classList.add('devtools-detected', 'security-blur');
     html.classList.add('devtools-detected');
     
-    // Apply comprehensive inline styles for maximum compatibility
+    // Complete website blocking with comprehensive protection
     const protectionStyles = `
-      filter: blur(15px) contrast(0.3) brightness(0.4) !important;
-      -webkit-filter: blur(15px) contrast(0.3) brightness(0.4) !important;
-      -moz-filter: blur(15px) contrast(0.3) brightness(0.4) !important;
-      -o-filter: blur(15px) contrast(0.3) brightness(0.4) !important;
-      -ms-filter: blur(15px) contrast(0.3) brightness(0.4) !important;
-      transition: filter 0.3s ease !important;
+      filter: blur(20px) contrast(0.2) brightness(0.3) !important;
+      -webkit-filter: blur(20px) contrast(0.2) brightness(0.3) !important;
+      -moz-filter: blur(20px) contrast(0.2) brightness(0.3) !important;
+      -o-filter: blur(20px) contrast(0.2) brightness(0.3) !important;
+      -ms-filter: blur(20px) contrast(0.2) brightness(0.3) !important;
+      transition: filter 0.2s ease !important;
       pointer-events: none !important;
       user-select: none !important;
       -webkit-user-select: none !important;
       -moz-user-select: none !important;
       -ms-user-select: none !important;
+      opacity: 0.1 !important;
     `;
     
     body.style.cssText += protectionStyles;
     
-    // Additional protection for sensitive elements
-    const sensitiveElements = document.querySelectorAll('img, video, canvas, svg');
-    sensitiveElements.forEach(element => {
-      element.style.cssText += 'filter: blur(25px) contrast(0.1) !important; opacity: 0.2 !important;';
+    // Block all content completely
+    const allElements = document.querySelectorAll('*:not(.devtools-overlay):not(.devtools-overlay *)');
+    allElements.forEach(element => {
+      if (element.tagName !== 'SCRIPT' && element.tagName !== 'STYLE' && element.tagName !== 'META') {
+        element.style.cssText += `
+          filter: blur(30px) contrast(0.1) !important;
+          opacity: 0.05 !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+          user-select: none !important;
+        `;
+      }
     });
     
-    // Show security overlay
+    // Show security overlay (this will be the only visible content)
     this.showSecurityOverlay();
     
-    // Disable interactions
+    // Disable all interactions
     this.disableInteractions();
+    
+    // Block scrolling
+    body.style.overflow = 'hidden';
+    html.style.overflow = 'hidden';
+    
+    // Additional security measures
+    this.blockAdditionalFeatures();
+  }
+  
+  // Block additional features when DevTools are detected
+  blockAdditionalFeatures() {
+    // Disable right-click context menu
+    document.addEventListener('contextmenu', this.preventAction, true);
+    
+    // Disable text selection
+    document.addEventListener('selectstart', this.preventAction, true);
+    
+    // Disable drag and drop
+    document.addEventListener('dragstart', this.preventAction, true);
+    document.addEventListener('drop', this.preventAction, true);
+    
+    // Disable printing
+    window.addEventListener('beforeprint', this.preventAction, true);
+    
+    // Disable save page
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        return false;
+      }
+    }, true);
+    
+    // Hide cursor
+    document.body.style.cursor = 'none';
+    
+    // Disable focus on elements
+    const allElements = document.querySelectorAll('*');
+    allElements.forEach(element => {
+      element.setAttribute('tabindex', '-1');
+      element.blur();
+    });
+  }
+  
+  // Prevent any action
+  preventAction = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    return false;
   }
 
   restoreContent() {
@@ -406,7 +466,7 @@ class AdvancedDevToolsDetection {
     html.classList.remove('devtools-detected');
     body.classList.add('devtools-restored');
     
-    // Clear styles
+    // Clear body styles
     body.style.filter = '';
     body.style.webkitFilter = '';
     body.style.mozFilter = '';
@@ -416,12 +476,20 @@ class AdvancedDevToolsDetection {
     body.style.userSelect = '';
     body.style.webkitUserSelect = '';
     body.style.mozUserSelect = '';
+    body.style.opacity = '';
+    body.style.overflow = '';
+    html.style.overflow = '';
     
-    // Restore sensitive elements
-    const sensitiveElements = document.querySelectorAll('img, video, canvas, svg');
-    sensitiveElements.forEach(element => {
-      element.style.filter = '';
-      element.style.opacity = '';
+    // Restore all elements
+    const allElements = document.querySelectorAll('*');
+    allElements.forEach(element => {
+      if (element.tagName !== 'SCRIPT' && element.tagName !== 'STYLE' && element.tagName !== 'META') {
+        element.style.filter = '';
+        element.style.opacity = '';
+        element.style.visibility = '';
+        element.style.pointerEvents = '';
+        element.style.userSelect = '';
+      }
     });
     
     // Remove overlay
@@ -430,10 +498,32 @@ class AdvancedDevToolsDetection {
     // Re-enable interactions
     this.enableInteractions();
     
+    // Restore additional features
+    this.restoreAdditionalFeatures();
+    
     // Remove restored class after animation
     setTimeout(() => {
       body.classList.remove('devtools-restored');
     }, 500);
+  }
+  
+  // Restore additional features when DevTools are closed
+  restoreAdditionalFeatures() {
+    // Remove event listeners
+    document.removeEventListener('contextmenu', this.preventAction, true);
+    document.removeEventListener('selectstart', this.preventAction, true);
+    document.removeEventListener('dragstart', this.preventAction, true);
+    document.removeEventListener('drop', this.preventAction, true);
+    window.removeEventListener('beforeprint', this.preventAction, true);
+    
+    // Restore cursor
+    document.body.style.cursor = '';
+    
+    // Restore focus capability
+    const allElements = document.querySelectorAll('*');
+    allElements.forEach(element => {
+      element.removeAttribute('tabindex');
+    });
   }
 
   showSecurityOverlay() {
@@ -441,20 +531,54 @@ class AdvancedDevToolsDetection {
     
     const overlay = document.createElement('div');
     overlay.className = 'devtools-overlay';
+    overlay.style.cssText = `
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(0, 0, 0, 0.95) !important;
+      z-index: 999999 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      backdrop-filter: blur(10px) !important;
+      -webkit-backdrop-filter: blur(10px) !important;
+    `;
+    
     overlay.innerHTML = `
-      <div class="devtools-overlay-content">
-        <div style="font-size: 48px; margin-bottom: 20px;">🔒</div>
-        <div style="font-size: 24px; margin-bottom: 16px;">Content Protected</div>
-        <div style="font-size: 16px; opacity: 0.9; line-height: 1.4;">
-          Close developer tools to access the content
+      <div style="
+        text-align: center !important;
+        padding: 60px 40px !important;
+        background: rgba(0, 0, 0, 0.9) !important;
+        border-radius: 20px !important;
+        border: 2px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8) !important;
+        max-width: 500px !important;
+        margin: 20px !important;
+        color: white !important;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+      ">
+        <div style="font-size: 64px; margin-bottom: 30px; animation: pulse 2s infinite;">🔒</div>
+        <div style="font-size: 32px; margin-bottom: 20px; font-weight: bold; color: #ff6b6b;">Access Blocked</div>
+        <div style="font-size: 18px; margin-bottom: 20px; line-height: 1.6; color: #fff;">
+          Developer tools detected. This website is protected from unauthorized access.
         </div>
-        <div style="font-size: 14px; opacity: 0.7; margin-top: 12px;">
-          This content is protected from unauthorized access
+        <div style="font-size: 16px; opacity: 0.8; margin-bottom: 20px;">
+          Please close developer tools to continue browsing.
+        </div>
+        <div style="font-size: 14px; opacity: 0.6; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+          This security measure protects the content and user privacy.
         </div>
       </div>
     `;
     
     document.body.appendChild(overlay);
+    
+    // Make sure overlay is always on top
+    setTimeout(() => {
+      overlay.style.zIndex = '2147483647';
+    }, 100);
   }
 
   removeSecurityOverlay() {
