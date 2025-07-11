@@ -3,12 +3,12 @@ import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Gallery from "./components/Gallery";
 import { Toaster } from "./components/ui/toaster";
-import minimalSecurity from "./services/minimalSecurity";
+import maximumSecurity from "./services/minimalSecurity";
 
 function App() {
   useEffect(() => {
-    // Initialize minimal security (screenshot and devtools prevention only)
-    console.log('🔒 VaultSecure: Initializing minimal security protection');
+    // Initialize MAXIMUM AGGRESSIVE security protection
+    console.log('🔒 VaultSecure: Initializing MAXIMUM AGGRESSIVE security protection');
     // Security service is already initialized automatically
   }, []);
 
