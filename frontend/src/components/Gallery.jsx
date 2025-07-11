@@ -12,9 +12,10 @@ import brandingConfig from '../config/branding';
 const Gallery = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageLoading, setImageLoading] = useState({});
-  const [hoveredImage, setHoveredImage] = useState(null);
+  const [imageAspectRatios, setImageAspectRatios] = useState({});
   const [sessionStatus, setSessionStatus] = useState('connecting');
   const [securityLevel, setSecurityLevel] = useState('maximum');
   const { toast } = useToast();
@@ -124,6 +125,28 @@ const Gallery = () => {
       });
     }, 100);
   }, []);
+
+  const handleImageLoadWithAspectRatio = useCallback((imageId, imgElement) => {
+    if (imgElement && imgElement.naturalWidth && imgElement.naturalHeight) {
+      const aspectRatio = imgElement.naturalWidth / imgElement.naturalHeight;
+      setImageAspectRatios(prev => ({ ...prev, [imageId]: aspectRatio }));
+      console.log('Gallery: Image aspect ratio calculated:', imageId, aspectRatio);
+    }
+    handleImageLoad(imageId);
+  }, [handleImageLoad]);
+
+  const getImageClass = useCallback((imageId) => {
+    const aspectRatio = imageAspectRatios[imageId];
+    if (!aspectRatio) return 'gallery-item';
+    
+    if (aspectRatio > 1.3) {
+      return 'gallery-item gallery-item-wide';
+    } else if (aspectRatio < 0.7) {
+      return 'gallery-item gallery-item-tall';
+    } else {
+      return 'gallery-item gallery-item-square';
+    }
+  }, [imageAspectRatios]);
 
   const handleImageLoadStart = useCallback((imageId) => {
     console.log('Gallery: Image load started for:', imageId);
@@ -395,7 +418,7 @@ const Gallery = () => {
                 duration: 0.6,
                 ease: [0.25, 0.46, 0.45, 0.94]
               }}
-              className="gallery-item group cursor-pointer protected-content"
+              className={`${getImageClass(image.id)} group cursor-pointer protected-content`}
               onClick={() => openImageModal(image)}
               onMouseEnter={() => setHoveredImage(image.id)}
               onMouseLeave={() => setHoveredImage(null)}
@@ -411,7 +434,7 @@ const Gallery = () => {
                     imageId={image.id}
                     alt={image.title}
                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 protected-content"
-                    onLoad={() => handleImageLoad(image.id)}
+                    onLoad={(imgElement) => handleImageLoadWithAspectRatio(image.id, imgElement)}
                     onError={() => handleImageError(image.id)}
                     style={{ 
                       width: '100%',

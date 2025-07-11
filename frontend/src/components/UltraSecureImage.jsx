@@ -123,6 +123,7 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
 
     // 3. Enhanced multi-method developer tools detection
     const detectDevTools = () => {
+      console.log('🔍 DevTools detection initialized');
       let devtoolsDetected = false;
       let detectionMethods = {
         windowSize: false,

@@ -125,6 +125,43 @@
     touch-action: manipulation;
 }
 
+/* Dynamic sizing classes based on image aspect ratio */
+.gallery-item-square {
+    aspect-ratio: 1;
+}
+
+.gallery-item-wide {
+    aspect-ratio: 3/2;
+    grid-column: span 2;
+}
+
+.gallery-item-tall {
+    aspect-ratio: 2/3;
+    grid-row: span 2;
+}
+
+/* Responsive adjustments for dynamic sizing */
+@media (max-width: 768px) {
+    .gallery-item-wide {
+        grid-column: span 1;
+        aspect-ratio: 3/2;
+    }
+    
+    .gallery-item-tall {
+        grid-row: span 1;
+        aspect-ratio: 2/3;
+    }
+}
+
+@media (max-width: 480px) {
+    .gallery-item-wide,
+    .gallery-item-tall {
+        aspect-ratio: 1;
+        grid-column: span 1;
+        grid-row: span 1;
+    }
+}
+
 /* Mobile-first hover effects */
 @media (hover: hover) {
     .gallery-item:hover {
