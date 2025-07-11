@@ -555,6 +555,8 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
   };
 
   useEffect(() => {
+    console.log('UltraSecureImage: useEffect triggered', { imageUrl, hasCanvas: !!canvasRef.current, hasContainer: !!containerRef.current });
+    
     if (!imageUrl || !canvasRef.current) {
       console.log('UltraSecureImage: Missing imageUrl or canvas ref', { imageUrl, hasCanvas: !!canvasRef.current });
       return;
