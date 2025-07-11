@@ -73,7 +73,6 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
           ctx.clearRect(0, 0, containerWidth, containerHeight);
           ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
           
-          // Clean image without watermarks
           
           setLoading(false);
           setError(false);
@@ -155,7 +154,6 @@ const SimpleSecureImage = ({ imageId, alt, className, style, onLoad, onError }) 
         ctx.font = '11px Arial';
         ctx.fillText(`ID: ${id}`, containerWidth/2, containerHeight/2 + 25);
         
-        // Clean fallback without watermarks
         
         setLoading(false);
         loadingRef.current = false;

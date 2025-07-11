@@ -403,7 +403,6 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
                     canvas.height = img.height;
                     ctx.drawImage(img, 0, 0);
                     
-                    // Clean image without watermarks
                     
                     resolve();
                   } catch (drawError) {
@@ -460,7 +459,6 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
           ctx.fillText('Protection Active', 400, 300);
           ctx.fillText('Image protected with enterprise security', 400, 330);
           
-          // Clean placeholder without watermarks
           
           setLoading(false);
           if (onLoad) onLoad();
@@ -481,7 +479,6 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
           // Draw image
           ctx.drawImage(img, 0, 0);
           
-          // Clean image without watermarks
           
           setLoading(false);
           if (onLoad) onLoad();
@@ -529,7 +526,6 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
           ctx.fillText('🔒 SECURE CONTENT', 200, 140);
           ctx.fillText('Temporary Load Issue', 200, 170);
           
-          // Clean error display without watermarks
         }
         
         setLoading(false);

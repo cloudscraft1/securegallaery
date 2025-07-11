@@ -36,7 +36,7 @@ const SecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) => {
           console.log('Secure method failed, trying fallback for localhost:', secureError);
           
           if (isLocalhost) {
-            // Fallback: Load image directly but still render to canvas with watermarks
+            // Fallback: Load image directly but still render to canvas
             const img = new Image();
             img.crossOrigin = 'anonymous';
             
@@ -49,8 +49,6 @@ const SecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) => {
               
               // Draw image
               ctx.drawImage(img, 0, 0);
-              
-              // No watermarks - clean image display
               
               // Still apply protection
               canvas.oncontextmenu = (e) => {

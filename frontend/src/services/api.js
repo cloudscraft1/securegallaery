@@ -620,7 +620,6 @@ async initializeSession() {
       // Draw image
       ctx.drawImage(img, 0, 0);
       
-      // No watermarks - clean image display
       
       // Prevent context menu and selection
       canvas.oncontextmenu = (e) => {

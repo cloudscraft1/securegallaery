@@ -108,7 +108,6 @@ const SimpleImageDisplay = ({ imageId, alt, className, style, onLoad, onError })
           ctx.clearRect(0, 0, containerWidth, containerHeight);
           ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
           
-          // Clean image without watermarks
           
           setLoading(false);
           setError(false);
@@ -174,7 +173,6 @@ const SimpleImageDisplay = ({ imageId, alt, className, style, onLoad, onError })
         ctx.font = '10px Arial';
         ctx.fillText(`ID: ${imageId}`, containerWidth/2, containerHeight/2 + 20);
         
-        // Clean placeholder without watermarks
         
         setLoading(false);
         if (onLoad) onLoad();

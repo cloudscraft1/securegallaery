@@ -3,7 +3,6 @@
 
 // Debug environment variables
 console.log('Environment variables loaded:');
-console.log('REACT_APP_CANVAS_WATERMARK:', process.env.REACT_APP_CANVAS_WATERMARK);
 console.log('REACT_APP_BRAND_NAME:', process.env.REACT_APP_BRAND_NAME);
 
 const brandingConfig = {
@@ -12,8 +11,6 @@ const brandingConfig = {
   brandNamePart1: process.env.REACT_APP_BRAND_NAME_PART1 || 'Secure',
   brandNamePart2: process.env.REACT_APP_BRAND_NAME_PART2 || 'Gallery',
   
-  // Watermark and Security Labels
-  canvasWatermark: process.env.REACT_APP_CANVAS_WATERMARK || 'secure',
   
   // Main Taglines and Descriptions
   tagline: process.env.REACT_APP_TAGLINE || 'Your memories, safeguarded with military-grade protection',
@@ -47,7 +44,6 @@ const brandingConfig = {
 
 // Debug final configuration
 console.log('Final branding configuration:');
-console.log('canvasWatermark:', brandingConfig.canvasWatermark);
 console.log('brandName:', brandingConfig.brandName);
 
 export default brandingConfig;

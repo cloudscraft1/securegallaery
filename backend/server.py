@@ -300,23 +300,6 @@ def validate_referer(request: Request) -> bool:
     # More lenient validation for demo
     return any(host in f"{parsed_referer.netloc}" for host in allowed_hosts) or parsed_referer.netloc == ""
 
-def add_watermark_to_image(image_path: str, watermark_text: str = "") -> io.BytesIO:
-    """Return clean image without watermarks"""
-    try:
-        # Return clean image without any watermarks
-        img_buffer = io.BytesIO()
-        
-        # Create a clean image
-        img = Image.new('RGB', (800, 600), color='lightblue')
-        
-        img.save(img_buffer, format='JPEG', quality=85)
-        img_buffer.seek(0)
-        
-        return img_buffer
-    except Exception as e:
-        logging.error(f"Error processing image: {e}")
-        # Return empty buffer if processing fails
-        return io.BytesIO()
 
 async def create_fallback_image_response(image_id: str, session_id: str, error_message: str):
     """Create a fallback image response when image processing fails"""
@@ -356,7 +339,6 @@ async def create_fallback_image_response(image_id: str, session_id: str, error_m
             "fallback": True,
             "error": error_message,
             "security": {
-                "watermarked": False,
                 "sessionBound": True,
                 "antiDownload": True
             }
@@ -791,7 +773,6 @@ async def view_secure_image(image_id: str, token: str, request: Request):
             # Return fallback image instead of failing
             return await create_fallback_image_response(image_id, session_id, "Processing error")
         
-        # Use clean image without watermarks
         try:
             # Convert to RGB for consistent format
             if img.mode != 'RGB':
@@ -836,7 +817,6 @@ async def view_secure_image(image_id: str, token: str, request: Request):
             "imageId": image_id,
             "timestamp": datetime.utcnow().isoformat(),
             "security": {
-                "watermarked": False,
                 "sessionBound": True,
                 "antiDownload": True
             }
@@ -893,7 +873,6 @@ async def view_secure_thumbnail(image_id: str, token: str, request: Request):
             # Create thumbnail (300x200)
             img.thumbnail((300, 200), Image.Resampling.LANCZOS)
             
-            # Clean thumbnail without watermarks
             
             # Convert to bytes
             img_buffer = io.BytesIO()

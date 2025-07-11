@@ -59,7 +59,6 @@ The `supervisord.conf` is configured to run the emergency server instead of the 
    - Screenshot detection
    - Developer tools detection
    - Canvas-based image rendering
-   - Dynamic watermarking
 
 ## Implementation Priority
 
