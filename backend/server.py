@@ -972,6 +972,88 @@ async def like_image(image_id: str, request: Request, session_id: str = Depends(
     
     return {"message": "Image liked successfully", "likes": img_data["likes"]}
 
+@api_router.post("/security-event")
+async def log_security_event(request: Request):
+    """Log security events from frontend"""
+    try:
+        # Get request data
+        data = await request.json()
+        
+        # Extract session ID from headers
+        session_id = request.headers.get("X-Session-ID", "unknown")
+        
+        # Log the security event
+        security_event = {
+            "session_id": session_id,
+            "ip_address": request.client.host,
+            "user_agent": request.headers.get("User-Agent", "unknown"),
+            "timestamp": datetime.utcnow().isoformat(),
+            "event": data.get("event", "unknown"),
+            "data": data.get("data", {})
+        }
+        
+        # Log to console for now (in production, save to database)
+        logger.warning(f"🔒 SECURITY EVENT: {security_event}")
+        
+        # Store in memory for analysis (in production, use database)
+        if not hasattr(log_security_event, "events"):
+            log_security_event.events = []
+        
+        log_security_event.events.append(security_event)
+        
+        # Keep only last 100 events in memory
+        if len(log_security_event.events) > 100:
+            log_security_event.events = log_security_event.events[-100:]
+        
+        # Check for patterns (multiple devtools detections)
+        if data.get("event") == "devtools_detected":
+            recent_events = [
+                event for event in log_security_event.events 
+                if event.get("event") == "devtools_detected" 
+                and event.get("ip_address") == request.client.host
+            ]
+            
+            if len(recent_events) >= 3:
+                logger.error(f"🚨 MULTIPLE DEVTOOLS DETECTIONS from {request.client.host}")
+                # Could implement IP blocking or additional measures here
+        
+        return {
+            "success": True,
+            "message": "Security event logged",
+            "event_count": len(log_security_event.events) if hasattr(log_security_event, "events") else 0
+        }
+        
+    except Exception as e:
+        logger.error(f"Error logging security event: {e}")
+        return {"success": False, "error": str(e)}
+
+@api_router.get("/security-events")
+async def get_security_events(request: Request):
+    """Get recent security events for analysis"""
+    try:
+        if not hasattr(log_security_event, "events"):
+            return {"events": [], "count": 0}
+        
+        events = log_security_event.events
+        
+        # Basic statistics
+        devtools_count = len([e for e in events if e.get("event") == "devtools_detected"])
+        unique_ips = len(set([e.get("ip_address") for e in events]))
+        
+        return {
+            "events": events[-20:],  # Last 20 events
+            "count": len(events),
+            "statistics": {
+                "devtools_detections": devtools_count,
+                "unique_ips": unique_ips,
+                "last_event": events[-1] if events else None
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting security events: {e}")
+        return {"events": [], "count": 0, "error": str(e)}
+
 @api_router.get("/images/refresh")
 async def refresh_images(request: Request, session_id: str = Depends(require_session)):
     """Refresh image discovery - useful for adding new images"""

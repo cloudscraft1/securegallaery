@@ -1,9 +1,13 @@
-// Minimal Security Service - Only Screenshot and DevTools Prevention
-class MinimalSecurityService {
+// Comprehensive Security Service - Advanced DevTools Detection
+class ComprehensiveSecurityService {
   constructor() {
     this.isActive = false;
     this.violations = [];
     this.devToolsDetected = false;
+    this.detectionMethods = [];
+    this.observers = [];
+    this.intervals = [];
+    this.sessionId = this.generateSessionId();
     this.init();
   }
 
@@ -11,11 +15,16 @@ class MinimalSecurityService {
     if (this.isActive) return;
     this.isActive = true;
     
-    console.log('🔒 VaultSecure: Minimal security protection activated');
+    console.log('🔒 VaultSecure: Comprehensive security protection activated');
     
-    // Only initialize screenshot and devtools prevention
+    // Initialize all detection methods
     this.preventScreenshots();
-    this.preventDevTools();
+    this.initializeAdvancedDevToolsDetection();
+    this.setupBackendCommunication();
+  }
+
+  generateSessionId() {
+    return 'sec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
   // Prevent screenshots only
@@ -48,81 +57,195 @@ class MinimalSecurityService {
     });
   }
 
-  // Balanced developer tools prevention - only block devtools, keep site working
-  preventDevTools() {
-    let devToolsCheckCount = 0;
+  // Setup backend communication
+  setupBackendCommunication() {
+    this.backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+    
+    // Report initial session
+    this.reportToBackend('session_start', {
+      sessionId: this.sessionId,
+      userAgent: navigator.userAgent,
+      timestamp: new Date().toISOString()
+    });
+  }
 
-    // Enhanced devtools detection with multiple methods
-    const checkDevTools = () => {
-      const threshold = 100; // More sensitive threshold
-      const heightDiff = window.outerHeight - window.innerHeight;
-      const widthDiff = window.outerWidth - window.innerWidth;
+  // Report to backend
+  async reportToBackend(event, data) {
+    try {
+      await fetch(`${this.backendUrl}/api/security-event`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Session-ID': this.sessionId
+        },
+        body: JSON.stringify({
+          event,
+          data,
+          timestamp: new Date().toISOString()
+        })
+      });
+    } catch (error) {
+      console.warn('Failed to report to backend:', error);
+    }
+  }
 
-      // Multiple detection conditions
-      const devToolsOpen = 
-        heightDiff > threshold || 
-        widthDiff > threshold ||
-        (window.outerWidth - window.innerWidth > 160) ||
-        (window.outerHeight - window.innerHeight > 160);
+  // Comprehensive developer tools detection
+  initializeAdvancedDevToolsDetection() {
+    console.log('🔒 Initializing advanced DevTools detection...');
+    
+    // Method 1: Window Size Detection with ResizeObserver
+    this.setupResizeObserver();
+    
+    // Method 2: Console Detection
+    this.setupConsoleDetection();
+    
+    // Method 3: Debugger Detection
+    this.setupDebuggerDetection();
+    
+    // Method 4: Performance Analysis
+    this.setupPerformanceAnalysis();
+    
+    // Method 5: DOM Manipulation Detection
+    this.setupDOMDetection();
+    
+    // Method 6: Keyboard Shortcuts
+    this.setupKeyboardDetection();
+    
+    // Method 7: Firebug Detection
+    this.setupFirebugDetection();
+    
+    // Method 8: Context Detection
+    this.setupContextDetection();
+  }
 
-      if (devToolsOpen) {
-        devToolsCheckCount++;
-        console.log('🔒 DevTools check', devToolsCheckCount, 'Height diff:', heightDiff, 'Width diff:', widthDiff);
-        
-        if (devToolsCheckCount > 1 && !this.devToolsDetected) {
-          console.log('🔒 DevTools detected! Triggering protection...');
-          this.devToolsDetected = true;
-          this.handleDevToolsDetection();
-          this.reportViolation('Developer tools detected');
-        }
-      } else {
-        devToolsCheckCount = 0;
-        if (this.devToolsDetected) {
-          console.log('🔒 DevTools closed! Restoring content...');
-          this.devToolsDetected = false;
-          this.restoreContent();
-        }
-      }
-    };
+  // Method 1: ResizeObserver for window changes
+  setupResizeObserver() {
+    if (window.ResizeObserver) {
+      const resizeObserver = new ResizeObserver(() => {
+        this.checkWindowSize();
+      });
+      resizeObserver.observe(document.body);
+      this.observers.push(resizeObserver);
+    }
+    
+    // Fallback interval check
+    const interval = setInterval(() => {
+      this.checkWindowSize();
+    }, 300);
+    this.intervals.push(interval);
+  }
 
-    // Check every 500ms (more frequent for better detection)
-    setInterval(checkDevTools, 500);
+  checkWindowSize() {
+    const heightDiff = window.outerHeight - window.innerHeight;
+    const widthDiff = window.outerWidth - window.innerWidth;
+    
+    // More sophisticated detection
+    const isDevToolsOpen = 
+      heightDiff > 80 || 
+      widthDiff > 80 ||
+      (window.outerWidth < window.innerWidth) ||
+      (window.outerHeight < window.innerHeight);
+    
+    if (isDevToolsOpen && !this.devToolsDetected) {
+      console.log('🔒 DevTools detected via window size! Height diff:', heightDiff, 'Width diff:', widthDiff);
+      this.triggerDevToolsDetection('window_size', { heightDiff, widthDiff });
+    } else if (!isDevToolsOpen && this.devToolsDetected) {
+      console.log('🔒 DevTools closed via window size!');
+      this.triggerDevToolsClose();
+    }
+  }
 
-    // Additional detection method using element inspection
-    const detectDevToolsAdvanced = () => {
-      let devtools = false;
+  // Method 2: Console Detection
+  setupConsoleDetection() {
+    const interval = setInterval(() => {
+      let devtoolsOpen = false;
       const element = document.createElement('div');
-      element.style.fontSize = '0';
       
       Object.defineProperty(element, 'id', {
         get: function() {
-          devtools = true;
-          return 'devtools-detection';
+          devtoolsOpen = true;
+          return 'console-detection';
         },
         configurable: true
       });
       
-      // This will trigger the getter if devtools are open
       console.log('%c', 'color: transparent', element);
       
-      if (devtools && !this.devToolsDetected) {
-        console.log('🔒 DevTools detected via advanced method!');
-        this.devToolsDetected = true;
-        this.handleDevToolsDetection();
-        this.reportViolation('Developer tools detected (advanced)');
+      if (devtoolsOpen && !this.devToolsDetected) {
+        console.log('🔒 DevTools detected via console!');
+        this.triggerDevToolsDetection('console_access', {});
       }
-    };
+    }, 1000);
     
-    // Check with advanced method every 2 seconds
-    setInterval(() => {
-      try {
-        detectDevToolsAdvanced();
-      } catch (e) {
-        // Ignore errors
+    this.intervals.push(interval);
+  }
+
+  // Method 3: Debugger Detection
+  setupDebuggerDetection() {
+    const interval = setInterval(() => {
+      const start = performance.now();
+      debugger;
+      const end = performance.now();
+      
+      if (end - start > 100) {
+        if (!this.devToolsDetected) {
+          console.log('🔒 DevTools detected via debugger! Time:', end - start, 'ms');
+          this.triggerDevToolsDetection('debugger_timing', { timeDiff: end - start });
+        }
       }
     }, 2000);
+    
+    this.intervals.push(interval);
+  }
 
-    // Only block ESSENTIAL developer tool shortcuts (don't break normal functionality)
+  // Method 4: Performance Analysis
+  setupPerformanceAnalysis() {
+    const interval = setInterval(() => {
+      // Check for performance anomalies
+      const entries = performance.getEntriesByType('navigation');
+      if (entries.length > 0) {
+        const timing = entries[0];
+        const loadTime = timing.loadEventEnd - timing.navigationStart;
+        
+        // Detect if page load is suspiciously slow (possible debugging)
+        if (loadTime > 5000 && !this.devToolsDetected) {
+          console.log('🔒 Suspicious load time detected:', loadTime, 'ms');
+          this.reportToBackend('suspicious_performance', { loadTime });
+        }
+      }
+    }, 5000);
+    
+    this.intervals.push(interval);
+  }
+
+  // Method 5: DOM Manipulation Detection
+  setupDOMDetection() {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === 1) {
+              const tagName = node.tagName?.toLowerCase();
+              if (tagName === 'script' || tagName === 'style') {
+                console.log('🔒 Suspicious DOM injection detected:', tagName);
+                this.reportToBackend('dom_injection', { tagName });
+              }
+            }
+          });
+        }
+      });
+    });
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    
+    this.observers.push(observer);
+  }
+
+  // Method 6: Keyboard Detection
+  setupKeyboardDetection() {
     document.addEventListener('keydown', (e) => {
       // Block F12 key
       if (e.key === 'F12') {
@@ -132,7 +255,7 @@ class MinimalSecurityService {
         return false;
       }
       
-      // Block Ctrl+Shift+I (Inspect) - but allow normal Ctrl+I
+      // Block Ctrl+Shift+I (Inspect)
       if (e.ctrlKey && e.shiftKey && e.key === 'I') {
         e.preventDefault();
         this.showWarning('Developer tools access is disabled');
@@ -140,7 +263,7 @@ class MinimalSecurityService {
         return false;
       }
       
-      // Block Ctrl+Shift+J (Console) - but allow normal Ctrl+J
+      // Block Ctrl+Shift+J (Console)
       if (e.ctrlKey && e.shiftKey && e.key === 'J') {
         e.preventDefault();
         this.showWarning('Developer tools access is disabled');
@@ -148,7 +271,7 @@ class MinimalSecurityService {
         return false;
       }
       
-      // Block Ctrl+Shift+C (Inspect Element) - but allow normal Ctrl+C
+      // Block Ctrl+Shift+C (Inspect Element)
       if (e.ctrlKey && e.shiftKey && e.key === 'C') {
         e.preventDefault();
         this.showWarning('Developer tools access is disabled');
@@ -156,7 +279,7 @@ class MinimalSecurityService {
         return false;
       }
       
-      // Block Ctrl+U (View Source) - but allow other Ctrl+U usage
+      // Block Ctrl+U (View Source)
       if (e.ctrlKey && e.key === 'u') {
         e.preventDefault();
         this.showWarning('View source is disabled');
@@ -164,62 +287,80 @@ class MinimalSecurityService {
         return false;
       }
     });
-
-    // Enhanced debugger detection
-    let debuggerCheckCount = 0;
-    const checkDebugger = () => {
-      try {
-        const start = performance.now();
-        debugger;
-        const end = performance.now();
-        
-        console.log('🔒 Debugger check - time diff:', end - start, 'ms');
-        
-        if (end - start > 100) {
-          debuggerCheckCount++;
-          console.log('🔒 Debugger detected! Count:', debuggerCheckCount);
-          
-          if (debuggerCheckCount > 1 && !this.devToolsDetected) {
-            console.log('🔒 DevTools detected via debugger!');
-            this.devToolsDetected = true;
-            this.handleDevToolsDetection();
-            this.reportViolation('Debugger detected');
-          }
-        } else {
-          debuggerCheckCount = 0;
-        }
-      } catch (e) {
-        // Ignore errors
+  }
+  
+  // Method 7: Firebug Detection
+  setupFirebugDetection() {
+    const interval = setInterval(() => {
+      if (window.console && window.console.firebug) {
+        console.log('🔒 Firebug detected!');
+        this.triggerDevToolsDetection('firebug', {});
       }
-    };
-    
-    // Check debugger every 2 seconds (more frequent)
-    setInterval(checkDebugger, 2000);
-    
-    // Force detection on first load
-    setTimeout(() => {
-      console.log('🔒 Running initial detection checks...');
-      checkDevTools();
-      checkDebugger();
-      detectDevToolsAdvanced();
     }, 1000);
     
-    // Test detection immediately on page load
-    const testDetection = () => {
-      const heightDiff = window.outerHeight - window.innerHeight;
-      const widthDiff = window.outerWidth - window.innerWidth;
-      console.log('🔒 Initial detection test - Height diff:', heightDiff, 'Width diff:', widthDiff);
+    this.intervals.push(interval);
+  }
+  
+  // Method 8: Context Detection
+  setupContextDetection() {
+    // Check if running in a different context (like devtools)
+    const interval = setInterval(() => {
+      const threshold = 500;
+      const before = performance.now();
       
-      if (heightDiff > 100 || widthDiff > 100) {
-        console.log('🔒 DevTools may already be open!');
-        this.devToolsDetected = true;
-        this.handleDevToolsDetection();
-        this.reportViolation('Developer tools detected on load');
+      // This operation is slower in devtools
+      for (let i = 0; i < 100; i++) {
+        console.log('');
       }
-    };
+      
+      const after = performance.now();
+      const timeDiff = after - before;
+      
+      if (timeDiff > threshold && !this.devToolsDetected) {
+        console.log('🔒 DevTools detected via context timing! Time:', timeDiff, 'ms');
+        this.triggerDevToolsDetection('context_timing', { timeDiff });
+      }
+    }, 3000);
     
-    // Run test after a short delay
-    setTimeout(testDetection, 500);
+    this.intervals.push(interval);
+  }
+  
+  // Trigger DevTools Detection
+  triggerDevToolsDetection(method, data) {
+    if (this.devToolsDetected) return;
+    
+    this.devToolsDetected = true;
+    console.log('🔒 DevTools detected via:', method, data);
+    
+    // Report to backend
+    this.reportToBackend('devtools_detected', {
+      method,
+      data,
+      sessionId: this.sessionId,
+      userAgent: navigator.userAgent,
+      url: window.location.href
+    });
+    
+    // Apply protection
+    this.handleDevToolsDetection();
+    this.reportViolation(`Developer tools detected (${method})`);
+  }
+  
+  // Trigger DevTools Close
+  triggerDevToolsClose() {
+    if (!this.devToolsDetected) return;
+    
+    this.devToolsDetected = false;
+    console.log('🔒 DevTools closed!');
+    
+    // Report to backend
+    this.reportToBackend('devtools_closed', {
+      sessionId: this.sessionId,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Restore content
+    this.restoreContent();
   }
 
   // Handle developer tools detection - balanced approach
@@ -399,5 +540,5 @@ class MinimalSecurityService {
 }
 
 // Create and export instance
-const minimalSecurity = new MinimalSecurityService();
-export default minimalSecurity;
+const comprehensiveSecurity = new ComprehensiveSecurityService();
+export default comprehensiveSecurity;
