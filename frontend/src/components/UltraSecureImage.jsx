@@ -113,78 +113,301 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
       methods.forEach(method => method());
     };
 
-    // 3. Enhanced developer tools detection
+    // 3. Enhanced multi-method developer tools detection
     const detectDevTools = () => {
       let devtoolsDetected = false;
-      let warningCount = 0;
-      let consecutiveDetections = 0;
-      const threshold = 200; // More sensitive
-
-      const check = () => {
+      let detectionMethods = {
+        windowSize: false,
+        consoleDetection: false,
+        debuggerDetection: false,
+        timingDetection: false,
+        viewportDetection: false
+      };
+      let detectionIntervals = [];
+      let overlayElement = null;
+      
+      const activateProtection = () => {
+        if (devtoolsDetected) return;
+        
+        const detectionCount = Object.values(detectionMethods).filter(Boolean).length;
+        
+        // Require at least 2 methods to confirm detection (reduces false positives)
+        if (detectionCount >= 2) {
+          devtoolsDetected = true;
+          
+          handleSecurityViolation('Developer tools detected - CRITICAL (Multi-method)');
+          
+          // Apply visual protection
+          canvas.style.filter = 'blur(50px) brightness(0.3)';
+          canvas.style.opacity = '0.2';
+          
+          // Create blocking overlay
+          overlayElement = document.createElement('div');
+          overlayElement.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(220, 38, 38, 0.95);
+            z-index: 999999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: Arial, sans-serif;
+            backdrop-filter: blur(20px);
+            user-select: none;
+            pointer-events: auto;
+          `;
+          
+          overlayElement.innerHTML = `
+            <div style="text-align: center; max-width: 600px; padding: 40px;">
+              <div style="font-size: 48px; margin-bottom: 20px;">🚨</div>
+              <div style="font-size: 28px; font-weight: bold; margin-bottom: 15px;">SECURITY VIOLATION DETECTED</div>
+              <div style="font-size: 18px; margin-bottom: 20px;">Developer Tools Access Blocked</div>
+              <div style="font-size: 14px; opacity: 0.8;">This content is protected by enterprise-grade security</div>
+              <div style="font-size: 12px; margin-top: 20px; opacity: 0.6;">Detection Methods: ${Object.keys(detectionMethods).filter(k => detectionMethods[k]).join(', ')}</div>
+            </div>
+          `;
+          
+          document.body.appendChild(overlayElement);
+          
+          // Show alert
+          showSecurityAlert('🚨 SECURITY BREACH: Developer Tools Detected');
+        }
+      };
+      
+      const deactivateProtection = () => {
+        if (!devtoolsDetected) return;
+        
+        devtoolsDetected = false;
+        detectionMethods = {
+          windowSize: false,
+          consoleDetection: false,
+          debuggerDetection: false,
+          timingDetection: false,
+          viewportDetection: false
+        };
+        
+        // Remove overlay
+        if (overlayElement && overlayElement.parentNode) {
+          overlayElement.parentNode.removeChild(overlayElement);
+          overlayElement = null;
+        }
+        
+        // Restore canvas
+        setTimeout(() => {
+          if (canvas) {
+            canvas.style.filter = 'none';
+            canvas.style.opacity = '1';
+          }
+        }, 1000);
+      };
+      
+      // Method 1: Window size detection with dynamic thresholds
+      const checkWindowSize = () => {
         const heightDiff = window.outerHeight - window.innerHeight;
         const widthDiff = window.outerWidth - window.innerWidth;
+        const screenRatio = window.innerHeight / window.screen.height;
         
-        if (heightDiff > threshold || widthDiff > threshold) {
-          consecutiveDetections++;
-          if (!devtoolsDetected && consecutiveDetections > 3) {
-            devtoolsDetected = true;
-            warningCount++;
-            
-            handleSecurityViolation('Developer tools detected - CRITICAL');
-            
-            // Strong protection mode
-            canvas.style.filter = 'blur(30px)';
-            canvas.style.opacity = '0.3';
-            
-            // Show strong warning
-            showSecurityAlert('🚨 SECURITY BREACH: Developer Tools Detected');
-            
-            // Additional security measures
-            const overlay = document.createElement('div');
-            overlay.style.cssText = `
-              position: fixed;
-              top: 0;
-              left: 0;
-              width: 100%;
-              height: 100%;
-              background: rgba(220, 38, 38, 0.8);
-              z-index: 999998;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: white;
-              font-size: 24px;
-              font-weight: bold;
-              backdrop-filter: blur(10px);
-            `;
-            overlay.textContent = '🚨 SECURITY VIOLATION DETECTED';
-            document.body.appendChild(overlay);
-            
-            setTimeout(() => {
-              if (overlay.parentNode) {
-                overlay.parentNode.removeChild(overlay);
-              }
-            }, 3000);
-          }
-        } else {
-          consecutiveDetections = 0;
-          if (devtoolsDetected) {
-            devtoolsDetected = false;
-            // Restore content after delay
-            setTimeout(() => {
-              if (canvas) {
-                canvas.style.filter = 'none';
-                canvas.style.opacity = '1';
-              }
-            }, 2000);
+        // Dynamic threshold based on screen size
+        const threshold = Math.max(150, window.screen.height * 0.15);
+        
+        const sizeDetected = heightDiff > threshold || widthDiff > threshold || screenRatio < 0.7;
+        
+        if (sizeDetected !== detectionMethods.windowSize) {
+          detectionMethods.windowSize = sizeDetected;
+          if (sizeDetected) {
+            activateProtection();
+          } else {
+            deactivateProtection();
           }
         }
       };
-
-      setInterval(check, 500); // Less frequent checking to avoid performance issues
+      
+      // Method 2: Console detection using getter trap
+      const checkConsole = () => {
+        let consoleDetected = false;
+        const startTime = performance.now();
+        
+        const devtools = {
+          get open() {
+            consoleDetected = true;
+            return false;
+          }
+        };
+        
+        console.dir(devtools);
+        
+        const endTime = performance.now();
+        const timeDiff = endTime - startTime;
+        
+        // If getter was called or timing is suspicious
+        if (consoleDetected || timeDiff > 100) {
+          detectionMethods.consoleDetection = true;
+          activateProtection();
+        }
+      };
+      
+      // Method 3: Debugger detection
+      const checkDebugger = () => {
+        const before = performance.now();
+        debugger;
+        const after = performance.now();
+        
+        if (after - before > 100) {
+          detectionMethods.debuggerDetection = true;
+          activateProtection();
+        }
+      };
+      
+      // Method 4: Console API timing detection
+      const checkTiming = () => {
+        const start = performance.now();
+        console.profile('devtools-check');
+        console.profileEnd('devtools-check');
+        const end = performance.now();
+        
+        if (end - start > 10) {
+          detectionMethods.timingDetection = true;
+          activateProtection();
+        }
+      };
+      
+      // Method 5: Viewport change detection
+      const checkViewport = () => {
+        const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+        const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+        const expectedVw = window.screen.width;
+        const expectedVh = window.screen.height;
+        
+        if (vw < expectedVw * 0.8 || vh < expectedVh * 0.8) {
+          detectionMethods.viewportDetection = true;
+          activateProtection();
+        }
+      };
+      
+      // Start detection intervals
+      detectionIntervals.push(setInterval(checkWindowSize, 1000));
+      detectionIntervals.push(setInterval(checkConsole, 2000));
+      detectionIntervals.push(setInterval(checkDebugger, 3000));
+      detectionIntervals.push(setInterval(checkTiming, 4000));
+      detectionIntervals.push(setInterval(checkViewport, 1500));
+      
+      // Cleanup function
+      return () => {
+        detectionIntervals.forEach(interval => clearInterval(interval));
+        if (overlayElement && overlayElement.parentNode) {
+          overlayElement.parentNode.removeChild(overlayElement);
+        }
+      };
     };
 
-    // 4. Advanced DOM protection
+    // 4. Developer keyboard shortcuts blocking
+    const blockDevShortcuts = () => {
+      const blockedShortcuts = [
+        { key: 'F12', description: 'Developer Tools' },
+        { key: 'I', ctrl: true, shift: true, description: 'Inspector' },
+        { key: 'C', ctrl: true, shift: true, description: 'Console' },
+        { key: 'J', ctrl: true, shift: true, description: 'Console' },
+        { key: 'K', ctrl: true, shift: true, description: 'Console' },
+        { key: 'S', ctrl: true, shift: true, description: 'Sources' },
+        { key: 'E', ctrl: true, shift: true, description: 'Elements' },
+        { key: 'U', ctrl: true, description: 'View Source' },
+        { key: 'P', ctrl: true, shift: true, description: 'Command Menu' },
+        { key: 'F', ctrl: true, shift: true, description: 'Search' },
+        { key: 'R', ctrl: true, shift: true, description: 'Hard Refresh' },
+        { key: 'Delete', shift: true, description: 'Delete' },
+        { key: 'F5', ctrl: true, description: 'Hard Refresh' },
+        { key: 'F6', description: 'Focus Address Bar' },
+        { key: 'F10', description: 'Menu Bar' },
+        { key: 'F11', description: 'Full Screen' }
+      ];
+      
+      const handleKeyDown = (e) => {
+        const isBlocked = blockedShortcuts.some(shortcut => {
+          if (e.key === shortcut.key) {
+            const ctrlMatch = shortcut.ctrl ? e.ctrlKey : !e.ctrlKey;
+            const shiftMatch = shortcut.shift ? e.shiftKey : !e.shiftKey;
+            const altMatch = shortcut.alt ? e.altKey : !e.altKey;
+            
+            return ctrlMatch && shiftMatch && altMatch;
+          }
+          return false;
+        });
+        
+        if (isBlocked) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          
+          const shortcut = blockedShortcuts.find(s => {
+            const ctrlMatch = s.ctrl ? e.ctrlKey : !e.ctrlKey;
+            const shiftMatch = s.shift ? e.shiftKey : !e.shiftKey;
+            const altMatch = s.alt ? e.altKey : !e.altKey;
+            return e.key === s.key && ctrlMatch && shiftMatch && altMatch;
+          });
+          
+          handleSecurityViolation(`Blocked developer shortcut: ${shortcut?.description || 'Unknown'} (${e.key})`);
+          
+          // Show visual warning
+          showSecurityAlert(`🚫 Blocked: ${shortcut?.description || 'Developer Shortcut'}`);
+          
+          // Create temporary blocking overlay
+          const blockOverlay = document.createElement('div');
+          blockOverlay.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(220, 38, 38, 0.95);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 999999;
+            backdrop-filter: blur(10px);
+            border: 2px solid #fff;
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+            user-select: none;
+            pointer-events: none;
+          `;
+          
+          blockOverlay.innerHTML = `
+            <div style="text-align: center;">
+              <div style="font-size: 24px; margin-bottom: 10px;">🚫</div>
+              <div>Developer Shortcut Blocked</div>
+              <div style="font-size: 14px; opacity: 0.8; margin-top: 5px;">${shortcut?.description || 'Unknown'}</div>
+            </div>
+          `;
+          
+          document.body.appendChild(blockOverlay);
+          
+          setTimeout(() => {
+            if (blockOverlay.parentNode) {
+              blockOverlay.parentNode.removeChild(blockOverlay);
+            }
+          }, 2000);
+          
+          return false;
+        }
+      };
+      
+      // Add event listeners with high priority
+      document.addEventListener('keydown', handleKeyDown, { capture: true, passive: false });
+      window.addEventListener('keydown', handleKeyDown, { capture: true, passive: false });
+      
+      // Return cleanup function
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown, { capture: true });
+        window.removeEventListener('keydown', handleKeyDown, { capture: true });
+      };
+    };
+
+    // 5. Advanced DOM protection
     const protectDOM = () => {
       // Prevent inspect element
       container.addEventListener('contextmenu', (e) => {
@@ -264,16 +487,18 @@ const UltraSecureImage = ({ imageUrl, alt, className, style, onLoad, onError }) 
       };
     };
 
-    // Activate all protection methods (temporarily disabled for debugging)
+    // Activate all protection methods
     detectScreenshot();
-    // detectDevTools(); // Disabled to prevent false positives
+    const cleanupDevTools = detectDevTools(); // Enable enhanced DevTools detection
     protectDOM();
-    protectKeyboard();
+    const cleanupKeyboardShortcuts = blockDevShortcuts(); // Enable comprehensive keyboard blocking
     protectNetwork();
 
     return () => {
       // Cleanup function
       window.fetch = window.fetch.original || window.fetch;
+      if (cleanupDevTools) cleanupDevTools();
+      if (cleanupKeyboardShortcuts) cleanupKeyboardShortcuts();
     };
   }, []);
 
