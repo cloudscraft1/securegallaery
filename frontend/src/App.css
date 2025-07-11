@@ -317,10 +317,35 @@
     100% { background-position: 0% 50%; }
 }
 
-/* Enhanced DevTools Protection Styles */
+/* Enhanced DevTools Protection Styles - Multi-layer approach */
 .devtools-detected {
-    filter: blur(10px) !important;
-    transition: filter 0.5s ease !important;
+    filter: blur(15px) contrast(0.3) !important;
+    -webkit-filter: blur(15px) contrast(0.3) !important;
+    -moz-filter: blur(15px) contrast(0.3) !important;
+    -o-filter: blur(15px) contrast(0.3) !important;
+    -ms-filter: blur(15px) contrast(0.3) !important;
+    transition: filter 0.3s ease !important;
+    -webkit-transition: -webkit-filter 0.3s ease !important;
+    -moz-transition: -moz-filter 0.3s ease !important;
+    -o-transition: -o-filter 0.3s ease !important;
+    -ms-transition: -ms-filter 0.3s ease !important;
+    pointer-events: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    position: relative !important;
+}
+
+.devtools-detected::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+    z-index: 999997 !important;
     pointer-events: none !important;
 }
 
@@ -330,7 +355,7 @@
     left: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    background: rgba(0, 0, 0, 0.5) !important;
+    background: rgba(0, 0, 0, 0.8) !important;
     z-index: 999998 !important;
     display: flex !important;
     align-items: center !important;
@@ -338,19 +363,34 @@
     color: white !important;
     font-size: 18px !important;
     font-weight: bold !important;
-    font-family: Arial, sans-serif !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     pointer-events: none !important;
-    backdrop-filter: blur(5px) !important;
-    -webkit-backdrop-filter: blur(5px) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    animation: fadeIn 0.3s ease-in !important;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .devtools-overlay-content {
-    text-align: center;
-    padding: 30px;
-    background: rgba(0, 0, 0, 0.8);
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    animation: pulse 2s infinite;
+    text-align: center !important;
+    padding: 40px !important;
+    background: rgba(0, 0, 0, 0.9) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.8) !important;
+    border: 2px solid rgba(255, 255, 255, 0.1) !important;
+    animation: pulse 2s infinite !important;
+    max-width: 400px !important;
+    margin: 20px !important;
 }
 
 @keyframes pulse {
@@ -364,18 +404,55 @@
     }
 }
 
-/* Ensure blur effect works properly across all browsers */
+/* Comprehensive security blur - works across all browsers */
 .security-blur {
-    filter: blur(10px);
-    -webkit-filter: blur(10px);
-    -moz-filter: blur(10px);
-    -o-filter: blur(10px);
-    -ms-filter: blur(10px);
-    transition: filter 0.5s ease;
-    -webkit-transition: -webkit-filter 0.5s ease;
-    -moz-transition: -moz-filter 0.5s ease;
-    -o-transition: -o-filter 0.5s ease;
-    -ms-transition: -ms-filter 0.5s ease;
+    filter: blur(15px) contrast(0.3) brightness(0.4) !important;
+    -webkit-filter: blur(15px) contrast(0.3) brightness(0.4) !important;
+    -moz-filter: blur(15px) contrast(0.3) brightness(0.4) !important;
+    -o-filter: blur(15px) contrast(0.3) brightness(0.4) !important;
+    -ms-filter: blur(15px) contrast(0.3) brightness(0.4) !important;
+    transition: filter 0.3s ease !important;
+    -webkit-transition: -webkit-filter 0.3s ease !important;
+    -moz-transition: -moz-filter 0.3s ease !important;
+    -o-transition: -o-filter 0.3s ease !important;
+    -ms-transition: -ms-filter 0.3s ease !important;
+    pointer-events: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+}
+
+/* Extra protection for images and sensitive content */
+.devtools-detected img,
+.devtools-detected video,
+.devtools-detected canvas,
+.devtools-detected svg {
+    filter: blur(20px) contrast(0.1) !important;
+    -webkit-filter: blur(20px) contrast(0.1) !important;
+    -moz-filter: blur(20px) contrast(0.1) !important;
+    opacity: 0.3 !important;
+    pointer-events: none !important;
+}
+
+/* Fallback for older browsers */
+.devtools-detected * {
+    text-shadow: 0 0 10px rgba(0,0,0,0.8) !important;
+    background: rgba(0,0,0,0.3) !important;
+}
+
+/* Remove blur when devtools are closed */
+.devtools-restored {
+    filter: none !important;
+    -webkit-filter: none !important;
+    -moz-filter: none !important;
+    -o-filter: none !important;
+    -ms-filter: none !important;
+    transition: filter 0.5s ease !important;
+    -webkit-transition: -webkit-filter 0.5s ease !important;
+    -moz-transition: -moz-filter 0.5s ease !important;
+    -o-transition: -o-filter 0.5s ease !important;
+    -ms-transition: -ms-filter 0.5s ease !important;
 }
 
 /* Enhanced security warning */

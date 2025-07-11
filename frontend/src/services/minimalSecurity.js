@@ -118,29 +118,46 @@ class ComprehensiveSecurityService {
     this.setupPageVisibilityDetection();
   }
 
-// Method 1: Enhanced Resize Detection
+// Method 1: Enhanced Window Size Detection
   setupEnhancedResizeDetection() {
-    const RESIZE_THRESHOLD = 300; // Increased threshold to reduce false positives
-    let previousOuterWidth = window.outerWidth;
-    let previousOuterHeight = window.outerHeight;
-
-    const resizeCheck = () => {
-      const widthChanged = Math.abs(window.outerWidth - previousOuterWidth) > RESIZE_THRESHOLD;
-      const heightChanged = Math.abs(window.outerHeight - previousOuterHeight) > RESIZE_THRESHOLD;
-      const isDevToolsOpen = widthChanged || heightChanged;
-
+    let lastResizeTime = 0;
+    let resizeTimeout;
+    
+    const checkWindowSize = () => {
+      const now = Date.now();
+      if (now - lastResizeTime < 500) return; // Debounce
+      
+      const heightDiff = window.outerHeight - window.innerHeight;
+      const widthDiff = window.outerWidth - window.innerWidth;
+      
+      // Multiple detection criteria for better accuracy
+      const isDevToolsOpen = 
+        heightDiff > 160 || // DevTools panel height
+        widthDiff > 160 ||  // DevTools panel width
+        (window.outerWidth < 800 && heightDiff > 80) || // Small window adjustment
+        (window.outerHeight < 600 && widthDiff > 80) ||  // Small window adjustment
+        (window.devicePixelRatio && heightDiff > 200) || // High DPI screens
+        (window.screen.availHeight - window.outerHeight > 100 && heightDiff > 100); // Taskbar consideration
+      
       if (isDevToolsOpen && !this.devToolsDetected) {
-        console.log('🔒 Resize detected - Width:', window.outerWidth, 'Height:', window.outerHeight);
-        this.triggerDevToolsDetection('enhanced_resize');
-        previousOuterWidth = window.outerWidth;
-        previousOuterHeight = window.outerHeight;
+        console.log('🔒 DevTools detected - Height diff:', heightDiff, 'Width diff:', widthDiff);
+        this.triggerDevToolsDetection('window_size_enhanced', { heightDiff, widthDiff });
+        lastResizeTime = now;
       } else if (!isDevToolsOpen && this.devToolsDetected) {
+        console.log('🔒 DevTools closed - Height diff:', heightDiff, 'Width diff:', widthDiff);
         this.triggerDevToolsClose();
+        lastResizeTime = now;
       }
     };
-
-    window.addEventListener('resize', resizeCheck);
-    // Remove interval check to prevent constant triggering
+    
+    // Listen to resize events with debouncing
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(checkWindowSize, 100);
+    });
+    
+    // Initial check
+    checkWindowSize();
   }
 
   checkWindowSize() {
@@ -163,9 +180,14 @@ class ComprehensiveSecurityService {
     }
   }
 
-  // Method 2: Console Detection (Reduced frequency)
+  // Method 2: Advanced Console Detection
   setupConsoleDetection() {
-    const interval = setInterval(() => {
+    let consoleCheckCount = 0;
+    const maxConsoleChecks = 5; // Limit console checks to prevent performance issues
+    
+    const consoleCheck = () => {
+      if (consoleCheckCount >= maxConsoleChecks) return;
+      
       let devtoolsOpen = false;
       const element = document.createElement('div');
       
@@ -177,13 +199,33 @@ class ComprehensiveSecurityService {
         configurable: true
       });
       
-      console.log('%c', 'color: transparent', element);
+      // Use a more sophisticated console detection
+      const originalLog = console.log;
+      let consoleOpened = false;
       
-      if (devtoolsOpen && !this.devToolsDetected) {
-        console.log('🔒 DevTools detected via console!');
-        this.triggerDevToolsDetection('console_access', {});
+      console.log = function() {
+        consoleOpened = true;
+        return originalLog.apply(console, arguments);
+      };
+      
+      console.log('%c', 'color: transparent', element);
+      console.log = originalLog; // Restore original
+      
+      if ((devtoolsOpen || consoleOpened) && !this.devToolsDetected) {
+        console.log('🔒 DevTools detected via console access!');
+        this.triggerDevToolsDetection('console_access', { method: devtoolsOpen ? 'property' : 'log' });
+        consoleCheckCount++;
       }
-    }, 3000); // Reduced frequency to 3 seconds
+    };
+    
+    // Check console access every 2 seconds, but limit the number of checks
+    const interval = setInterval(() => {
+      if (consoleCheckCount < maxConsoleChecks) {
+        consoleCheck();
+      } else {
+        clearInterval(interval);
+      }
+    }, 2000);
     
     this.intervals.push(interval);
   }
@@ -318,24 +360,53 @@ class ComprehensiveSecurityService {
     console.log('🔒 Orientation detection disabled to prevent false positives');
   }
 
-  // Method 7: Continuous Monitoring (Refined)
+  // Method 7: Intelligent Continuous Monitoring
   setupContinuousMonitoring() {
+    let consecutiveDetections = 0;
+    let consecutiveNormalStates = 0;
+    const DETECTION_THRESHOLD = 3; // Require 3 consecutive detections
+    const NORMAL_THRESHOLD = 2; // Require 2 consecutive normal states
+    
     const monitorInterval = setInterval(() => {
-      // Multiple detection methods combined
       const heightDiff = window.outerHeight - window.innerHeight;
       const widthDiff = window.outerWidth - window.innerWidth;
       
-      // More conservative thresholds to reduce false positives
-      const isDevToolsOpen = heightDiff > 200 || widthDiff > 200;
+      // Dynamic thresholds based on screen size
+      const screenArea = window.screen.width * window.screen.height;
+      const isLargeScreen = screenArea > (1920 * 1080);
+      const baseThreshold = isLargeScreen ? 180 : 160;
       
-      if (isDevToolsOpen && !this.devToolsDetected) {
-        console.log('🔒 Continuous monitoring detected DevTools - Height diff:', heightDiff, 'Width diff:', widthDiff);
-        this.triggerDevToolsDetection('continuous_monitoring');
-      } else if (!isDevToolsOpen && this.devToolsDetected) {
-        console.log('🔒 Continuous monitoring: DevTools closed');
-        this.triggerDevToolsClose();
+      // More sophisticated detection logic
+      const isDevToolsOpen = 
+        heightDiff > baseThreshold || 
+        widthDiff > baseThreshold ||
+        (heightDiff > 120 && widthDiff > 120) || // Both dimensions changed
+        (window.outerWidth < window.innerWidth) || // Impossible normal state
+        (window.outerHeight < window.innerHeight); // Impossible normal state
+      
+      if (isDevToolsOpen) {
+        consecutiveDetections++;
+        consecutiveNormalStates = 0;
+        
+        if (consecutiveDetections >= DETECTION_THRESHOLD && !this.devToolsDetected) {
+          console.log('🔒 DevTools detected after', consecutiveDetections, 'consecutive checks - Height diff:', heightDiff, 'Width diff:', widthDiff);
+          this.triggerDevToolsDetection('continuous_monitoring', { 
+            heightDiff, 
+            widthDiff, 
+            consecutiveDetections,
+            screenArea
+          });
+        }
+      } else {
+        consecutiveNormalStates++;
+        consecutiveDetections = 0;
+        
+        if (consecutiveNormalStates >= NORMAL_THRESHOLD && this.devToolsDetected) {
+          console.log('🔒 DevTools closed after', consecutiveNormalStates, 'consecutive normal checks');
+          this.triggerDevToolsClose();
+        }
       }
-    }, 1000); // Reduced frequency from 500ms to 1000ms
+    }, 800); // Slightly more frequent for better responsiveness
     
     this.intervals.push(monitorInterval);
   }
@@ -396,29 +467,74 @@ class ComprehensiveSecurityService {
 
   // Handle developer tools detection - enhanced approach
   handleDevToolsDetection() {
-    console.log('🔒 DevTools detected - applying full site protection');
+    console.log('🔒 DevTools detected - applying comprehensive protection');
     
-    // Add blur class to body for better control
+    // Apply multiple layers of protection
     const bodyElement = document.body;
-    bodyElement.classList.add('devtools-detected');
-    bodyElement.style.filter = 'blur(10px)';
-    bodyElement.style.transition = 'filter 0.5s ease';
-    bodyElement.style.pointerEvents = 'none';
+    const htmlElement = document.documentElement;
+    
+    // Add classes for CSS-based protection
+    bodyElement.classList.add('devtools-detected', 'security-blur');
+    htmlElement.classList.add('devtools-detected');
+    
+    // Apply inline styles as backup (higher specificity)
+    bodyElement.style.cssText += `
+      filter: blur(15px) !important;
+      -webkit-filter: blur(15px) !important;
+      -moz-filter: blur(15px) !important;
+      transition: filter 0.3s ease !important;
+      pointer-events: none !important;
+      user-select: none !important;
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+    `;
+    
+    // Additional protection for all images and content
+    const allElements = document.querySelectorAll('*');
+    allElements.forEach(element => {
+      if (element.tagName !== 'SCRIPT' && element.tagName !== 'STYLE') {
+        element.style.cssText += 'filter: blur(5px) !important;';
+      }
+    });
     
     // Show overlay and warning
     this.showSecurityOverlay();
-    this.showWarning('Developer tools detected - Website protected');
+    this.showWarning('Developer tools detected - Content protected');
+    
+    // Disable all interactions
+    document.addEventListener('selectstart', this.preventAction, true);
+    document.addEventListener('contextmenu', this.preventAction, true);
+    document.addEventListener('dragstart', this.preventAction, true);
+    document.addEventListener('drop', this.preventAction, true);
   }
 
   // Restore content when dev tools are closed
   restoreContent() {
     console.log('🔒 DevTools closed - restoring content');
     
-    // Remove blur class and styles from body
+    // Remove protection classes
     const bodyElement = document.body;
-    bodyElement.classList.remove('devtools-detected');
-    bodyElement.style.filter = 'none';
-    bodyElement.style.pointerEvents = 'auto';
+    const htmlElement = document.documentElement;
+    
+    bodyElement.classList.remove('devtools-detected', 'security-blur');
+    htmlElement.classList.remove('devtools-detected');
+    
+    // Clear inline styles
+    bodyElement.style.filter = '';
+    bodyElement.style.webkitFilter = '';
+    bodyElement.style.mozFilter = '';
+    bodyElement.style.pointerEvents = '';
+    bodyElement.style.userSelect = '';
+    bodyElement.style.webkitUserSelect = '';
+    bodyElement.style.mozUserSelect = '';
+    
+    // Restore all elements
+    const allElements = document.querySelectorAll('*');
+    allElements.forEach(element => {
+      if (element.tagName !== 'SCRIPT' && element.tagName !== 'STYLE') {
+        element.style.filter = '';
+      }
+    });
     
     // Remove security overlay
     this.removeSecurityOverlay();
@@ -426,6 +542,12 @@ class ComprehensiveSecurityService {
     // Remove any existing warnings
     const existingWarnings = document.querySelectorAll('.security-warning');
     existingWarnings.forEach(warning => warning.remove());
+    
+    // Re-enable interactions
+    document.removeEventListener('selectstart', this.preventAction, true);
+    document.removeEventListener('contextmenu', this.preventAction, true);
+    document.removeEventListener('dragstart', this.preventAction, true);
+    document.removeEventListener('drop', this.preventAction, true);
   }
 
   // Show security overlay - covers entire page
@@ -559,31 +681,61 @@ class ComprehensiveSecurityService {
     console.log('🔒 VaultSecure: Security protection disabled');
   }
   
-  // Force check devtools state (for debugging)
+  // Utility method to prevent actions
+  preventAction = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }
+  
+  // Enhanced force check with multiple detection methods
   forceCheckDevTools() {
     const heightDiff = window.outerHeight - window.innerHeight;
     const widthDiff = window.outerWidth - window.innerWidth;
+    const screenArea = window.screen.width * window.screen.height;
+    const isLargeScreen = screenArea > (1920 * 1080);
+    const baseThreshold = isLargeScreen ? 180 : 160;
     
-    console.log('Current dimensions:', {
+    console.log('🔧 Force DevTools Check - Current dimensions:', {
       outerHeight: window.outerHeight,
       innerHeight: window.innerHeight,
       outerWidth: window.outerWidth,
       innerWidth: window.innerWidth,
       heightDiff,
       widthDiff,
+      screenArea,
+      isLargeScreen,
+      baseThreshold,
       devToolsDetected: this.devToolsDetected
     });
     
-    // Use same conservative thresholds as continuous monitoring
-    const isDevToolsOpen = heightDiff > 200 || widthDiff > 200;
+    // Use enhanced detection logic
+    const isDevToolsOpen = 
+      heightDiff > baseThreshold || 
+      widthDiff > baseThreshold ||
+      (heightDiff > 120 && widthDiff > 120) ||
+      (window.outerWidth < window.innerWidth) ||
+      (window.outerHeight < window.innerHeight);
     
     if (isDevToolsOpen && !this.devToolsDetected) {
-      console.log('🔒 Force check: DevTools detected');
-      this.triggerDevToolsDetection('manual_check');
+      console.log('🔒 Force check: DevTools detected with enhanced logic');
+      this.triggerDevToolsDetection('manual_check_enhanced', {
+        heightDiff,
+        widthDiff,
+        screenArea,
+        method: 'force_check'
+      });
     } else if (!isDevToolsOpen && this.devToolsDetected) {
       console.log('🔒 Force check: DevTools closed');
       this.triggerDevToolsClose();
     }
+    
+    return {
+      isDevToolsOpen,
+      heightDiff,
+      widthDiff,
+      currentState: this.devToolsDetected
+    };
   }
 }
 
