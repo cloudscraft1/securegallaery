@@ -3,19 +3,15 @@ import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Gallery from "./components/Gallery";
 import { Toaster } from "./components/ui/toaster";
-import reliableDevToolsDetection from "./services/reliableDevToolsDetection";
 import minimalSecurity from "./services/minimalSecurity";
 
 function App() {
   useEffect(() => {
-    // Initialize reliable DevTools detection
-    console.log('🔒 VaultSecure: Initializing reliable DevTools protection');
+    // Initialize basic security (screenshot protection only)
+    console.log('🔒 VaultSecure: Initializing basic security protection');
     
-    // The reliable detection service is already initialized automatically
-    // You can check its status with: window.devToolsDebug.getStatus()
-    
-    // Also keep the minimal security for screenshot protection
-    console.log('🔒 VaultSecure: Screenshot protection also active');
+    // Only screenshot protection is active
+    console.log('🔒 VaultSecure: Screenshot protection active');
   }, []);
 
   return (
