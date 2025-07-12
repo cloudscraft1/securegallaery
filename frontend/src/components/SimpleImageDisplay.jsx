@@ -5,9 +5,13 @@ import brandingConfig from '../config/branding';
 const SimpleImageDisplay = ({ imageId, alt, className, style, onLoad, onError }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const canvasRef = useRef(null);
   const hasInitialized = useRef(false);
   const currentImageId = useRef(null);
+  const loadingTimeoutRef = useRef(null);
+  const maxRetries = 3;
+  const loadingTimeout = 15000; // 15 seconds timeout
 
   useEffect(() => {
     // Prevent re-initialization for the same image
@@ -31,7 +35,18 @@ const SimpleImageDisplay = ({ imageId, alt, className, style, onLoad, onError })
 
     const loadImage = async () => {
       try {
-        console.log('SimpleImageDisplay: Loading image for ID:', imageId);
+        console.log('SimpleImageDisplay: Loading image for ID:', imageId, 'attempt:', retryCount + 1);
+        
+        // Clear any existing timeout
+        if (loadingTimeoutRef.current) {
+          clearTimeout(loadingTimeoutRef.current);
+        }
+        
+        // Set loading timeout
+        loadingTimeoutRef.current = setTimeout(() => {
+          console.warn('SimpleImageDisplay: Loading timeout for:', imageId);
+          handleLoadingError('Loading timeout');
+        }, loadingTimeout);
         
         // Get images from API with caching
         const images = await apiService.getImages();
@@ -39,15 +54,23 @@ const SimpleImageDisplay = ({ imageId, alt, className, style, onLoad, onError })
         
         if (!imageData) {
           console.error('SimpleImageDisplay: Image not found for ID:', imageId);
+          clearTimeout(loadingTimeoutRef.current);
           renderPlaceholder('Image not found');
           return;
         }
 
         console.log('SimpleImageDisplay: Found image data:', imageData);
         
-        // Try to load secure image
+        // Try to load secure image with timeout protection
         try {
-          const secureImageData = await apiService.getSecureImageData(imageData.url);
+          const secureImageData = await Promise.race([
+            apiService.getSecureImageData(imageData.url),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Secure image timeout')), loadingTimeout - 1000)
+            )
+          ]);
+          
+          clearTimeout(loadingTimeoutRef.current);
           
           if (secureImageData && secureImageData.success && secureImageData.imageData) {
             renderImageToCanvas(secureImageData.imageData);
@@ -55,12 +78,29 @@ const SimpleImageDisplay = ({ imageId, alt, className, style, onLoad, onError })
             renderPlaceholder(imageData.title);
           }
         } catch (secureError) {
-          console.warn('SimpleImageDisplay: Secure loading failed, using placeholder:', secureError);
-          renderPlaceholder(imageData.title);
+          clearTimeout(loadingTimeoutRef.current);
+          console.warn('SimpleImageDisplay: Secure loading failed:', secureError);
+          handleLoadingError(imageData.title || 'Secure loading failed');
         }
       } catch (error) {
+        clearTimeout(loadingTimeoutRef.current);
         console.error('SimpleImageDisplay: Error loading image:', error);
-        renderPlaceholder('Loading error');
+        handleLoadingError('Loading error');
+      }
+    };
+    
+    const handleLoadingError = (errorMessage) => {
+      if (retryCount < maxRetries) {
+        console.log(`SimpleImageDisplay: Retrying load for ${imageId}, attempt ${retryCount + 2}`);
+        setRetryCount(prev => prev + 1);
+        // Retry after a short delay
+        setTimeout(() => {
+          hasInitialized.current = false;
+          loadImage();
+        }, 1000 * (retryCount + 1)); // Exponential backoff
+      } else {
+        console.error(`SimpleImageDisplay: Max retries exceeded for ${imageId}`);
+        renderPlaceholder(errorMessage);
       }
     };
 
@@ -194,7 +234,14 @@ const SimpleImageDisplay = ({ imageId, alt, className, style, onLoad, onError })
     };
 
     loadImage();
-  }, [imageId, onLoad, onError]);
+    
+    // Cleanup timeout on unmount
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+    };
+  }, [imageId, onLoad, onError, retryCount]);
 
   if (error) {
     return (
