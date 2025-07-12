@@ -174,15 +174,15 @@ const ImageModal = ({ image, isOpen, onClose, onNavigate, canNavigate, onLike })
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20">
                   <Shield className="w-4 h-4 text-blue-400" />
-                  <span className="text-white text-sm font-medium">{brandingConfig.brandName}</span>
+                  <span className="text-white text-xs font-medium">{brandingConfig.brandName}</span>
                 </div>
                 <div className="flex items-center gap-2 bg-green-500/20 backdrop-blur-sm rounded-full px-4 py-2 border border-green-500/30">
                   <Lock className="w-4 h-4 text-green-400" />
-                  <span className="text-green-300 text-sm">{brandingConfig.statusLabels.protectedStatus}</span>
+                  <span className="text-green-300 text-xs">{brandingConfig.statusLabels.protectedStatus}</span>
                 </div>
                 <div className="flex items-center gap-2 bg-blue-500/20 backdrop-blur-sm rounded-full px-4 py-2 border border-blue-500/30">
                   <Eye className="w-4 h-4 text-blue-400" />
-                  <span className="text-blue-300 text-sm">{brandingConfig.statusLabels.secureView}</span>
+                  <span className="text-blue-300 text-xs">{brandingConfig.statusLabels.secureView}</span>
                 </div>
               </div>
               
@@ -203,7 +203,7 @@ const ImageModal = ({ image, isOpen, onClose, onNavigate, canNavigate, onLike })
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="relative max-w-[95vw] max-h-[90vh] w-auto h-auto flex items-center justify-center mt-16"
+            className="relative max-w-[98vw] max-h-[95vh] w-auto h-auto flex items-center justify-center mt-16"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative">
@@ -225,7 +225,7 @@ const ImageModal = ({ image, isOpen, onClose, onNavigate, canNavigate, onLike })
                   <img
                     src={image.url.startsWith('http') ? image.url : `http://localhost:8000${image.url}`}
                     alt={image.title}
-                    className="max-w-[90vw] max-h-[80vh] object-contain rounded-2xl protected-content"
+                    className="max-w-[95vw] max-h-[90vh] object-contain rounded-2xl protected-content"
                     onLoad={handleImageLoad}
                     onError={(e) => {
                       console.log('Modal image failed to load:', image.url);
@@ -250,7 +250,7 @@ const ImageModal = ({ image, isOpen, onClose, onNavigate, canNavigate, onLike })
                   <SecureImage
                     imageUrl={image.url}
                     alt={image.title}
-                    className="max-w-[90vw] max-h-[80vh] object-contain rounded-2xl protected-content"
+                    className="max-w-[95vw] max-h-[90vh] object-contain rounded-2xl protected-content"
                     onLoad={handleImageLoad}
                     onError={() => setImageLoaded(true)}
                     style={{
