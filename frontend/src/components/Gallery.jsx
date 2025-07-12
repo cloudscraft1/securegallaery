@@ -139,30 +139,25 @@ const Gallery = () => {
   const getImageClass = useCallback((imageId, index) => {
     const aspectRatio = imageAspectRatios[imageId];
     
-    // For now, simulate dynamic layouts based on index patterns for visual variety
-    // This creates a beautiful dynamic layout even without actual aspect ratios
-    
     if (aspectRatio) {
-      // Use actual aspect ratio if available
-      if (aspectRatio > 3.0) {
+      // Use actual aspect ratio for dynamic sizing
+      if (aspectRatio > 2.5) {
         return 'gallery-item gallery-item-panorama'; // Ultra-wide panoramic images
-      } else if (aspectRatio > 2.0) {
+      } else if (aspectRatio > 1.6) {
         return 'gallery-item gallery-item-wide'; // Wide landscape images
-      } else if (aspectRatio > 1.4) {
+      } else if (aspectRatio > 1.3) {
+        // Occasionally make some landscape images hero size for visual variety
         return index % 7 === 0 ? 'gallery-item gallery-item-hero' : 'gallery-item gallery-item-wide';
-      } else if (aspectRatio < 0.3) {
+      } else if (aspectRatio < 0.4) {
         return 'gallery-item gallery-item-portrait'; // Very tall portrait images
-      } else if (aspectRatio < 0.6) {
+      } else if (aspectRatio < 0.75) {
         return 'gallery-item gallery-item-tall'; // Tall portrait images
-      } else if (aspectRatio < 0.9) {
-        return index % 5 === 0 ? 'gallery-item gallery-item-tall' : 'gallery-item gallery-item-square';
-      } else if (aspectRatio < 1.1) {
-        return index % 8 === 0 ? 'gallery-item gallery-item-compact' : 'gallery-item gallery-item-square';
       } else {
-        return 'gallery-item gallery-item-square';
+        // Square and near-square images with some variety
+        return index % 6 === 0 ? 'gallery-item gallery-item-compact' : 'gallery-item gallery-item-square';
       }
     } else {
-      // Simulate dynamic layouts based on index patterns for beautiful variety
+      // Fallback to pattern-based layout for images without aspect ratio data
       const patterns = [
         'gallery-item gallery-item-square',    // 0: Square
         'gallery-item gallery-item-tall',      // 1: Tall

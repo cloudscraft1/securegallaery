@@ -7,95 +7,85 @@
 /* Beautiful Dynamic Masonry Layout - Pinterest Style with Fluid Columns */
 .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    grid-auto-rows: 10px;
-    gap: 12px;
-    padding: 0 16px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-auto-rows: 200px;
+    gap: 15px;
+    padding: 0 20px;
     width: 100%;
     max-width: 100%;
-    justify-items: stretch;
-    align-items: start;
+    justify-items: center;
 }
 
-/* Responsive breakpoints for fluid masonry - no fixed limits */
+/* Responsive breakpoints for dynamic masonry */
 @media (min-width: 320px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        grid-auto-rows: 8px;
-        gap: 10px;
-        padding: 0 12px;
+        grid-auto-rows: 180px;
+        gap: 12px;
+        padding: 0 15px;
     }
 }
 
 @media (min-width: 480px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        grid-auto-rows: 8px;
-        gap: 12px;
-        padding: 0 14px;
+        grid-auto-rows: 160px;
+        gap: 15px;
+        padding: 0 18px;
     }
 }
 
 @media (min-width: 640px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        grid-auto-rows: 8px;
-        gap: 14px;
-        padding: 0 16px;
+        grid-auto-rows: 150px;
+        gap: 16px;
+        padding: 0 20px;
     }
 }
 
 @media (min-width: 768px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        grid-auto-rows: 10px;
-        gap: 16px;
-        padding: 0 20px;
+        grid-auto-rows: 160px;
+        gap: 18px;
+        padding: 0 25px;
     }
 }
 
 @media (min-width: 1024px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-        grid-auto-rows: 10px;
-        gap: 18px;
-        padding: 0 24px;
+        grid-auto-rows: 180px;
+        gap: 20px;
+        padding: 0 30px;
     }
 }
 
 @media (min-width: 1280px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-        grid-auto-rows: 12px;
-        gap: 20px;
-        padding: 0 28px;
+        grid-auto-rows: 200px;
+        gap: 22px;
+        padding: 0 35px;
     }
 }
 
 @media (min-width: 1536px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        grid-auto-rows: 12px;
-        gap: 22px;
-        padding: 0 32px;
+        grid-auto-rows: 220px;
+        gap: 25px;
+        padding: 0 40px;
     }
 }
 
 @media (min-width: 1920px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        grid-auto-rows: 14px;
-        gap: 24px;
-        padding: 0 40px;
-    }
-}
-
-@media (min-width: 2560px) {
-    .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        grid-auto-rows: 16px;
+        grid-auto-rows: 240px;
         gap: 28px;
-        padding: 0 48px;
+        padding: 0 50px;
     }
 }
 
@@ -114,102 +104,74 @@
     border: 1px solid rgba(255,255,255,0.2);
 }
 
-/* Beautiful Dynamic sizing classes based on image aspect ratio */
+/* Dynamic sizing classes based on image aspect ratio */
 .gallery-item-square {
-    grid-row: span 24; /* ~240px at 10px rows */
+    grid-row: span 2;
     height: auto;
-    min-height: 240px;
 }
 
 .gallery-item-wide {
-    grid-column: span 1; /* Take full column width */
-    grid-row: span 20; /* ~200px for wide images */
+    grid-column: span 2;
+    grid-row: span 2;
     height: auto;
-    min-height: 200px;
 }
 
 .gallery-item-tall {
-    grid-row: span 35; /* ~350px for tall images */
+    grid-row: span 3;
     height: auto;
-    min-height: 350px;
 }
 
 .gallery-item-panorama {
-    grid-column: span 2; /* Span 2 columns for ultra-wide */
-    grid-row: span 22; /* ~220px height */
+    grid-column: span 3;
+    grid-row: span 2;
     height: auto;
-    min-height: 220px;
 }
 
 .gallery-item-portrait {
-    grid-row: span 50; /* ~500px for very tall portrait images */
+    grid-row: span 4;
     height: auto;
-    min-height: 500px;
 }
 
 /* Extra large images for special showcasing */
 .gallery-item-hero {
     grid-column: span 2;
-    grid-row: span 40; /* ~400px hero image */
+    grid-row: span 3;
     height: auto;
-    min-height: 400px;
 }
 
 /* Small compact images */
 .gallery-item-compact {
-    grid-row: span 18; /* ~180px for small images */
+    grid-row: span 1;
     height: auto;
-    min-height: 180px;
 }
 
-/* Responsive adjustments for beautiful dynamic sizing */
+/* Responsive adjustments for dynamic sizing */
 @media (max-width: 1024px) {
-    .gallery-item-panorama,
-    .gallery-item-hero {
-        grid-column: span 1; /* Single column on smaller screens */
-        grid-row: span 15; /* Maintain proportional height */
-        min-height: 300px;
+    .gallery-item-panorama {
+        grid-column: span 2;
+        grid-row: span 2;
     }
     
     .gallery-item-wide {
-        grid-row: span 12;
-        min-height: 240px;
+        grid-column: span 2;
+        grid-row: span 2;
     }
     
     .gallery-item-portrait {
-        grid-row: span 25;
-        min-height: 500px;
-    }
-    
-    .gallery-item-tall {
-        grid-row: span 18;
-        min-height: 360px;
+        grid-row: span 3;
     }
 }
 
 @media (max-width: 768px) {
     .gallery-item-wide,
-    .gallery-item-panorama,
-    .gallery-item-hero {
+    .gallery-item-panorama {
         grid-column: span 1;
-        grid-row: span 12;
-        min-height: 200px;
+        grid-row: span 2;
     }
     
     .gallery-item-tall,
     .gallery-item-portrait {
-        grid-row: span 20;
-        min-height: 350px;
-    }
-    
-    .gallery-item-square {
-        grid-row: span 12;
-        min-height: 200px;
-    }
-    
-    .gallery-item-compact {
-        grid-row: span 10;
-        min-height: 150px;
+        grid-row: span 2;
     }
 }
 
@@ -220,18 +182,7 @@
     .gallery-item-portrait,
     .gallery-item-hero {
         grid-column: span 1;
-        grid-row: span 15;
-        min-height: 250px;
-    }
-    
-    .gallery-item-square {
-        grid-row: span 12;
-        min-height: 200px;
-    }
-    
-    .gallery-item-compact {
-        grid-row: span 10;
-        min-height: 150px;
+        grid-row: span 2;
     }
 }
 
