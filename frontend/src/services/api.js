@@ -33,6 +33,10 @@ class VaultSecureAPI {
     this.tokenCache = new Map(); // Cache for image tokens
     this.tokenRefreshPromise = null; // Prevent multiple refresh calls
     this.refreshInterval = null; // Auto-refresh interval
+    this.requestCache = new Map(); // Cache for API responses
+    this.requestQueue = new Map(); // Prevent duplicate requests
+    this.lastRequestTime = 0; // Rate limiting
+    this.minRequestInterval = 100; // Minimum 100ms between requests
     this.api = axios.create({
       baseURL: API_BASE,
       timeout: 15000,
@@ -476,22 +480,67 @@ async initializeSession() {
 
   async getImages() {
     try {
-      console.log('Fetching images from backend...');
-      const response = await this.api.get('/images');
+      // Check cache first to avoid multiple requests
+      const cacheKey = 'images-list';
+      const cachedImages = this.requestCache.get(cacheKey);
+      const cacheTime = this.requestCache.get(cacheKey + '-time');
+      const cacheExpiry = 30000; // 30 seconds cache
       
-      // Cache tokens from image URLs
-      if (response.data && Array.isArray(response.data)) {
-        response.data.forEach(image => {
-          this.cacheTokensFromUrls(image.id, image.url, image.thumbnail_url);
-        });
-        console.log(`Successfully fetched ${response.data.length} images`);
+      // Return cached data if still valid
+      if (cachedImages && cacheTime && (Date.now() - cacheTime) < cacheExpiry) {
+        console.log('Returning cached images data');
+        return cachedImages;
       }
       
-      return response.data;
+      // Check if request is already in progress
+      if (this.requestQueue.has(cacheKey)) {
+        console.log('Images request already in progress, waiting...');
+        return this.requestQueue.get(cacheKey);
+      }
+      
+      // Rate limiting - prevent too frequent requests
+      const now = Date.now();
+      if (now - this.lastRequestTime < this.minRequestInterval) {
+        console.log('Rate limiting: waiting before next request');
+        await new Promise(resolve => setTimeout(resolve, this.minRequestInterval));
+      }
+      this.lastRequestTime = now;
+      
+      // Create new request promise
+      const requestPromise = this._fetchImages();
+      this.requestQueue.set(cacheKey, requestPromise);
+      
+      try {
+        const result = await requestPromise;
+        
+        // Cache the result
+        this.requestCache.set(cacheKey, result);
+        this.requestCache.set(cacheKey + '-time', Date.now());
+        
+        return result;
+      } finally {
+        // Clean up queue
+        this.requestQueue.delete(cacheKey);
+      }
     } catch (error) {
       console.error('Failed to fetch protected images:', error);
       throw error;
     }
+  }
+  
+  async _fetchImages() {
+    console.log('Fetching images from backend...');
+    const response = await this.api.get('/images');
+    
+    // Cache tokens from image URLs
+    if (response.data && Array.isArray(response.data)) {
+      response.data.forEach(image => {
+        this.cacheTokensFromUrls(image.id, image.url, image.thumbnail_url);
+      });
+      console.log(`Successfully fetched ${response.data.length} images`);
+    }
+    
+    return response.data;
   }
 
   async getSimpleImages() {
