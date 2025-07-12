@@ -138,28 +138,47 @@ const Gallery = () => {
 
   const getImageClass = useCallback((imageId, index) => {
     const aspectRatio = imageAspectRatios[imageId];
-    if (!aspectRatio) return 'gallery-item gallery-item-square';
     
-    // Enhanced aspect ratio detection with special showcasing logic
-    if (aspectRatio > 3.0) {
-      return 'gallery-item gallery-item-panorama'; // Ultra-wide panoramic images
-    } else if (aspectRatio > 2.0) {
-      return 'gallery-item gallery-item-wide'; // Wide landscape images
-    } else if (aspectRatio > 1.4) {
-      // Occasionally make some landscape images hero size for visual variety
-      return index % 7 === 0 ? 'gallery-item gallery-item-hero' : 'gallery-item gallery-item-wide';
-    } else if (aspectRatio < 0.3) {
-      return 'gallery-item gallery-item-portrait'; // Very tall portrait images
-    } else if (aspectRatio < 0.6) {
-      return 'gallery-item gallery-item-tall'; // Tall portrait images
-    } else if (aspectRatio < 0.9) {
-      // Mix of tall and square for near-square images
-      return index % 5 === 0 ? 'gallery-item gallery-item-tall' : 'gallery-item gallery-item-square';
-    } else if (aspectRatio < 1.1) {
-      // Perfect squares - occasionally make them compact for variety
-      return index % 8 === 0 ? 'gallery-item gallery-item-compact' : 'gallery-item gallery-item-square';
+    // For now, simulate dynamic layouts based on index patterns for visual variety
+    // This creates a beautiful dynamic layout even without actual aspect ratios
+    
+    if (aspectRatio) {
+      // Use actual aspect ratio if available
+      if (aspectRatio > 3.0) {
+        return 'gallery-item gallery-item-panorama'; // Ultra-wide panoramic images
+      } else if (aspectRatio > 2.0) {
+        return 'gallery-item gallery-item-wide'; // Wide landscape images
+      } else if (aspectRatio > 1.4) {
+        return index % 7 === 0 ? 'gallery-item gallery-item-hero' : 'gallery-item gallery-item-wide';
+      } else if (aspectRatio < 0.3) {
+        return 'gallery-item gallery-item-portrait'; // Very tall portrait images
+      } else if (aspectRatio < 0.6) {
+        return 'gallery-item gallery-item-tall'; // Tall portrait images
+      } else if (aspectRatio < 0.9) {
+        return index % 5 === 0 ? 'gallery-item gallery-item-tall' : 'gallery-item gallery-item-square';
+      } else if (aspectRatio < 1.1) {
+        return index % 8 === 0 ? 'gallery-item gallery-item-compact' : 'gallery-item gallery-item-square';
+      } else {
+        return 'gallery-item gallery-item-square';
+      }
     } else {
-      return 'gallery-item gallery-item-square'; // Default square-ish images
+      // Simulate dynamic layouts based on index patterns for beautiful variety
+      const patterns = [
+        'gallery-item gallery-item-square',    // 0: Square
+        'gallery-item gallery-item-tall',      // 1: Tall
+        'gallery-item gallery-item-wide',      // 2: Wide
+        'gallery-item gallery-item-compact',   // 3: Compact
+        'gallery-item gallery-item-square',    // 4: Square
+        'gallery-item gallery-item-portrait',  // 5: Portrait
+        'gallery-item gallery-item-wide',      // 6: Wide
+        'gallery-item gallery-item-hero',      // 7: Hero (large)
+        'gallery-item gallery-item-square',    // 8: Square
+        'gallery-item gallery-item-tall',      // 9: Tall
+        'gallery-item gallery-item-panorama',  // 10: Panorama
+        'gallery-item gallery-item-compact',   // 11: Compact
+      ];
+      
+      return patterns[index % patterns.length];
     }
   }, [imageAspectRatios]);
 
