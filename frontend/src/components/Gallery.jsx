@@ -136,16 +136,30 @@ const Gallery = () => {
     handleImageLoad(imageId);
   }, [handleImageLoad]);
 
-  const getImageClass = useCallback((imageId) => {
+  const getImageClass = useCallback((imageId, index) => {
     const aspectRatio = imageAspectRatios[imageId];
-    if (!aspectRatio) return 'gallery-item';
+    if (!aspectRatio) return 'gallery-item gallery-item-square';
     
-    if (aspectRatio > 1.3) {
-      return 'gallery-item gallery-item-wide';
-    } else if (aspectRatio < 0.7) {
-      return 'gallery-item gallery-item-tall';
+    // Enhanced aspect ratio detection with special showcasing logic
+    if (aspectRatio > 3.0) {
+      return 'gallery-item gallery-item-panorama'; // Ultra-wide panoramic images
+    } else if (aspectRatio > 2.0) {
+      return 'gallery-item gallery-item-wide'; // Wide landscape images
+    } else if (aspectRatio > 1.4) {
+      // Occasionally make some landscape images hero size for visual variety
+      return index % 7 === 0 ? 'gallery-item gallery-item-hero' : 'gallery-item gallery-item-wide';
+    } else if (aspectRatio < 0.3) {
+      return 'gallery-item gallery-item-portrait'; // Very tall portrait images
+    } else if (aspectRatio < 0.6) {
+      return 'gallery-item gallery-item-tall'; // Tall portrait images
+    } else if (aspectRatio < 0.9) {
+      // Mix of tall and square for near-square images
+      return index % 5 === 0 ? 'gallery-item gallery-item-tall' : 'gallery-item gallery-item-square';
+    } else if (aspectRatio < 1.1) {
+      // Perfect squares - occasionally make them compact for variety
+      return index % 8 === 0 ? 'gallery-item gallery-item-compact' : 'gallery-item gallery-item-square';
     } else {
-      return 'gallery-item gallery-item-square';
+      return 'gallery-item gallery-item-square'; // Default square-ish images
     }
   }, [imageAspectRatios]);
 
@@ -412,29 +426,36 @@ const Gallery = () => {
           {images.map((image, index) => (
             <motion.div
               key={image.id}
-              initial={{ opacity: 0, y: 60, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
+              initial={{ opacity: 0, y: 60, scale: 0.9, rotateY: -15 }}
+              animate={{ opacity: 1, y: 0, scale: 1, rotateY: 0 }}
               transition={{ 
-                delay: index * 0.1, 
-                duration: 0.6,
+                delay: index * 0.08, 
+                duration: 0.8,
                 ease: [0.25, 0.46, 0.45, 0.94]
               }}
-              className={`${getImageClass(image.id)} group cursor-pointer protected-content`}
+              className={`${getImageClass(image.id, index)} group cursor-pointer protected-content`}
               onClick={() => openImageModal(image)}
               onMouseEnter={() => setHoveredImage(image.id)}
               onMouseLeave={() => setHoveredImage(null)}
+              style={{
+                perspective: '1000px',
+                transformStyle: 'preserve-3d'
+              }}
             >
-              <div className="relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-2xl w-full h-full">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-white/20 shadow-2xl w-full h-full">
                 <div className="relative w-full h-full">
+                  {/* Loading shimmer effect */}
                   {imageLoading[image.id] && (
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-900/50 to-indigo-900/50 animate-pulse rounded-2xl"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-900/30 via-indigo-900/40 to-purple-900/30 animate-pulse rounded-2xl">
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"></div>
+                    </div>
                   )}
                   
                   {/* Ultra-Secure Image with Maximum Protection */}
                   <SimpleImageDisplay
                     imageId={image.id}
                     alt={image.title}
-                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 protected-content"
+                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105 protected-content"
                     onLoad={(imgElement) => handleImageLoadWithAspectRatio(image.id, imgElement)}
                     onError={() => handleImageError(image.id)}
                     style={{ 
@@ -444,10 +465,21 @@ const Gallery = () => {
                     }}
                   />
                   
+                  {/* Dynamic gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   
-                  {/* Hover Effect Ring */}
-                  <div className={`absolute inset-0 border-2 border-blue-500/0 rounded-2xl transition-all duration-300 ${
-                    hoveredImage === image.id ? 'border-blue-500/50 shadow-lg shadow-blue-500/25' : ''
+                  {/* Hover Effect Ring with dynamic color */}
+                  <div className={`absolute inset-0 border-2 rounded-2xl transition-all duration-500 ${
+                    hoveredImage === image.id 
+                      ? 'border-blue-400/60 shadow-lg shadow-blue-400/30' 
+                      : 'border-transparent'
+                  }`}></div>
+                  
+                  {/* Corner accent */}
+                  <div className={`absolute top-2 right-2 w-3 h-3 rounded-full transition-all duration-300 ${
+                    hoveredImage === image.id 
+                      ? 'bg-blue-400 shadow-lg shadow-blue-400/50' 
+                      : 'bg-white/20'
                   }`}></div>
                 </div>
               </div>

@@ -4,161 +4,234 @@
     overflow: hidden;
 }
 
-/* Mobile-First Responsive CSS Grid Layout */
+/* Beautiful Dynamic Masonry Layout - Pinterest Style with Fluid Columns */
 .gallery-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-    padding: 0 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-auto-rows: 20px;
+    gap: 20px;
+    padding: 0 20px;
     width: 100%;
     max-width: 100%;
+    justify-items: stretch;
+    align-items: start;
 }
 
-/* Very Small Mobile (320px+) */
+/* Responsive breakpoints for fluid masonry - no fixed limits */
 @media (min-width: 320px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 1rem;
-        padding: 0 0.75rem;
+        grid-auto-rows: 15px;
+        gap: 15px;
+        padding: 0 15px;
     }
 }
 
-/* Small Mobile (375px+) */
-@media (min-width: 375px) {
-    .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1.25rem;
-        padding: 0 1rem;
-    }
-}
-
-/* Medium Mobile (425px+) */
-@media (min-width: 425px) {
-    .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 1.5rem;
-        padding: 0 1.25rem;
-    }
-}
-
-/* Large Mobile (480px+) */
 @media (min-width: 480px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1.5rem;
-        padding: 0 1.5rem;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        grid-auto-rows: 15px;
+        gap: 18px;
+        padding: 0 20px;
     }
 }
 
-/* Small Tablet (640px+) */
 @media (min-width: 640px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 1.75rem;
-        padding: 0 2rem;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-auto-rows: 15px;
+        gap: 20px;
+        padding: 0 25px;
     }
 }
 
-/* Medium Tablet (768px+) */
 @media (min-width: 768px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 2rem;
-        padding: 0 2rem;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        grid-auto-rows: 18px;
+        gap: 22px;
+        padding: 0 30px;
     }
 }
 
-/* Large Tablet (1024px+) */
 @media (min-width: 1024px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 2rem;
-        padding: 0 3rem;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        grid-auto-rows: 18px;
+        gap: 25px;
+        padding: 0 40px;
     }
 }
 
-/* Desktop (1280px+) */
 @media (min-width: 1280px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 2rem;
-        padding: 0 3rem;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        grid-auto-rows: 20px;
+        gap: 28px;
+        padding: 0 50px;
     }
 }
 
-/* Large Desktop (1536px+) */
 @media (min-width: 1536px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-        gap: 2rem;
-        padding: 0 4rem;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-auto-rows: 20px;
+        gap: 30px;
+        padding: 0 60px;
     }
 }
 
-/* Ultra-wide screens (1920px+) */
 @media (min-width: 1920px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 2rem;
-        padding: 0 4rem;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        grid-auto-rows: 22px;
+        gap: 35px;
+        padding: 0 80px;
     }
 }
 
-/* Ultra-wide screens (2560px+) */
 @media (min-width: 2560px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-        gap: 2rem;
-        padding: 0 6rem;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        grid-auto-rows: 25px;
+        gap: 40px;
+        padding: 0 100px;
     }
 }
 
+/* Base gallery item styles */
 .gallery-item {
     position: relative;
     width: 100%;
-    aspect-ratio: 1;
     overflow: hidden;
-    border-radius: 12px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
     cursor: pointer;
     touch-action: manipulation;
+    background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(0,0,0,0.1));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
 }
 
-/* Dynamic sizing classes based on image aspect ratio */
+/* Beautiful Dynamic sizing classes based on image aspect ratio */
 .gallery-item-square {
-    aspect-ratio: 1;
+    grid-row: span 12; /* ~240px at 20px rows */
+    height: auto;
+    min-height: 240px;
 }
 
 .gallery-item-wide {
-    aspect-ratio: 3/2;
-    grid-column: span 2;
+    grid-column: span 1; /* Take full column width */
+    grid-row: span 10; /* ~200px for wide images */
+    height: auto;
+    min-height: 200px;
 }
 
 .gallery-item-tall {
-    aspect-ratio: 2/3;
-    grid-row: span 2;
+    grid-row: span 20; /* ~400px for tall images */
+    height: auto;
+    min-height: 400px;
 }
 
-/* Responsive adjustments for dynamic sizing */
-@media (max-width: 768px) {
+.gallery-item-panorama {
+    grid-column: span 2; /* Span 2 columns for ultra-wide */
+    grid-row: span 12; /* ~240px height */
+    height: auto;
+    min-height: 240px;
+}
+
+.gallery-item-portrait {
+    grid-row: span 30; /* ~600px for very tall portrait images */
+    height: auto;
+    min-height: 600px;
+}
+
+/* Extra large images for special showcasing */
+.gallery-item-hero {
+    grid-column: span 2;
+    grid-row: span 25; /* ~500px hero image */
+    height: auto;
+    min-height: 500px;
+}
+
+/* Small compact images */
+.gallery-item-compact {
+    grid-row: span 8; /* ~160px for small images */
+    height: auto;
+    min-height: 160px;
+}
+
+/* Responsive adjustments for beautiful dynamic sizing */
+@media (max-width: 1024px) {
+    .gallery-item-panorama,
+    .gallery-item-hero {
+        grid-column: span 1; /* Single column on smaller screens */
+        grid-row: span 15; /* Maintain proportional height */
+        min-height: 300px;
+    }
+    
     .gallery-item-wide {
-        grid-column: span 1;
-        aspect-ratio: 3/2;
+        grid-row: span 12;
+        min-height: 240px;
+    }
+    
+    .gallery-item-portrait {
+        grid-row: span 25;
+        min-height: 500px;
     }
     
     .gallery-item-tall {
-        grid-row: span 1;
-        aspect-ratio: 2/3;
+        grid-row: span 18;
+        min-height: 360px;
+    }
+}
+
+@media (max-width: 768px) {
+    .gallery-item-wide,
+    .gallery-item-panorama,
+    .gallery-item-hero {
+        grid-column: span 1;
+        grid-row: span 12;
+        min-height: 200px;
+    }
+    
+    .gallery-item-tall,
+    .gallery-item-portrait {
+        grid-row: span 20;
+        min-height: 350px;
+    }
+    
+    .gallery-item-square {
+        grid-row: span 12;
+        min-height: 200px;
+    }
+    
+    .gallery-item-compact {
+        grid-row: span 10;
+        min-height: 150px;
     }
 }
 
 @media (max-width: 480px) {
     .gallery-item-wide,
-    .gallery-item-tall {
-        aspect-ratio: 1;
+    .gallery-item-tall,
+    .gallery-item-panorama,
+    .gallery-item-portrait,
+    .gallery-item-hero {
         grid-column: span 1;
-        grid-row: span 1;
+        grid-row: span 15;
+        min-height: 250px;
+    }
+    
+    .gallery-item-square {
+        grid-row: span 12;
+        min-height: 200px;
+    }
+    
+    .gallery-item-compact {
+        grid-row: span 10;
+        min-height: 150px;
     }
 }
 
@@ -178,21 +251,76 @@
     }
 }
 
-/* Dynamic Heights for Pinterest-style feel - Mobile optimized */
-@media (min-width: 480px) {
-    .gallery-item:nth-child(3n+1) { aspect-ratio: 1 / 1.2; }
-    .gallery-item:nth-child(3n+2) { aspect-ratio: 1 / 1.4; }
-    .gallery-item:nth-child(3n+3) { aspect-ratio: 1 / 1.1; }
-    .gallery-item:nth-child(5n+1) { aspect-ratio: 1 / 1.3; }
-    .gallery-item:nth-child(5n+2) { aspect-ratio: 1 / 1.5; }
-    .gallery-item:nth-child(7n+1) { aspect-ratio: 1 / 1.25; }
-    .gallery-item:nth-child(7n+2) { aspect-ratio: 1 / 1.35; }
+/* Enhanced hover and interaction effects with dynamic scaling */
+.gallery-item:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3), 0 0 40px rgba(168, 85, 247, 0.2);
+    border-color: rgba(168, 85, 247, 0.6);
 }
 
-/* Simplify aspect ratios on very small screens */
-@media (max-width: 479px) {
-    .gallery-item:nth-child(odd) { aspect-ratio: 1 / 1.2; }
-    .gallery-item:nth-child(even) { aspect-ratio: 1 / 1.3; }
+/* Special hover effects for different image types */
+.gallery-item-hero:hover {
+    transform: translateY(-12px) scale(1.03);
+    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.4), 0 0 60px rgba(59, 130, 246, 0.3);
+}
+
+.gallery-item-panorama:hover {
+    transform: translateY(-6px) scale(1.015);
+    box-shadow: 0 20px 70px rgba(0, 0, 0, 0.25), 0 0 30px rgba(34, 197, 94, 0.2);
+}
+
+.gallery-item-portrait:hover {
+    transform: translateY(-10px) scale(1.025);
+    box-shadow: 0 35px 90px rgba(0, 0, 0, 0.35), 0 0 50px rgba(236, 72, 153, 0.25);
+}
+
+.gallery-item-compact:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2), 0 0 25px rgba(251, 191, 36, 0.3);
+}
+
+.gallery-item:hover::before {
+    opacity: 1;
+}
+
+.gallery-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(168, 85, 247, 0.1), rgba(59, 130, 246, 0.1));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: inherit;
+    z-index: 1;
+}
+
+/* Dynamic gradient variations for different image types */
+.gallery-item-hero::before {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 51, 234, 0.15));
+}
+
+.gallery-item-panorama::before {
+    background: linear-gradient(90deg, rgba(34, 197, 94, 0.1), rgba(59, 130, 246, 0.1));
+}
+
+.gallery-item-portrait::before {
+    background: linear-gradient(180deg, rgba(236, 72, 153, 0.1), rgba(168, 85, 247, 0.1));
+}
+
+.gallery-item-compact::before {
+    background: linear-gradient(45deg, rgba(251, 191, 36, 0.12), rgba(245, 158, 11, 0.12));
+}
+
+.gallery-item-tall::before {
+    background: linear-gradient(270deg, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1));
+}
+
+.gallery-item > * {
+    position: relative;
+    z-index: 2;
 }
 
 /* Custom scrollbar */
@@ -263,14 +391,18 @@
     user-select: none;
 }
 
-/* Loading shimmer effect */
+/* Enhanced shimmer animation for loading */
 @keyframes shimmer {
     0% {
-        background-position: -1000px 0;
+        transform: translateX(-100%);
     }
     100% {
-        background-position: 1000px 0;
+        transform: translateX(100%);
     }
+}
+
+.animate-shimmer {
+    animation: shimmer 2s infinite ease-in-out;
 }
 
 .shimmer {
@@ -282,6 +414,23 @@
         rgba(168, 85, 247, 0.1) 36%
     );
     background-size: 1000px 100%;
+}
+
+/* Advanced grid item animations */
+.gallery-item {
+    will-change: transform, box-shadow;
+}
+
+.gallery-item:nth-child(3n+1) {
+    animation-delay: 0.1s;
+}
+
+.gallery-item:nth-child(3n+2) {
+    animation-delay: 0.2s;
+}
+
+.gallery-item:nth-child(3n+3) {
+    animation-delay: 0.3s;
 }
 
 /* Glowing effects */
