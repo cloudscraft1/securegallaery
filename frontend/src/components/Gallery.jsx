@@ -140,26 +140,28 @@ const Gallery = () => {
     const aspectRatio = imageAspectRatios[imageId];
     
     if (aspectRatio) {
-      // Use actual aspect ratio for balanced dynamic sizing
-      if (aspectRatio > 2.2) {
+      // Use actual aspect ratio for balanced dynamic sizing with new categories
+      if (aspectRatio > 2.5) {
         return 'gallery-item gallery-item-panorama'; // Ultra-wide panoramic images
-      } else if (aspectRatio > 1.5) {
+      } else if (aspectRatio > 1.8) {
         return 'gallery-item gallery-item-wide'; // Wide landscape images
-      } else if (aspectRatio > 1.2) {
-        // Mix of wide and hero for landscape images
-        return index % 8 === 0 ? 'gallery-item gallery-item-hero' : 'gallery-item gallery-item-wide';
-      } else if (aspectRatio < 0.5) {
+      } else if (aspectRatio > 1.3) {
+        // Mix of wide, hero, and grand for landscape images
+        const landscapeVariants = ['wide', 'hero', 'wide', 'grand'];
+        const variant = landscapeVariants[index % landscapeVariants.length];
+        return `gallery-item gallery-item-${variant}`;
+      } else if (aspectRatio < 0.4) {
         return 'gallery-item gallery-item-portrait'; // Very tall portrait images
-      } else if (aspectRatio < 0.8) {
+      } else if (aspectRatio < 0.75) {
         return 'gallery-item gallery-item-tall'; // Tall portrait images
       } else {
-        // Square and near-square images with balanced variety
-        const squareVariants = ['square', 'square', 'square', 'compact', 'square', 'hero'];
+        // Square and near-square images with balanced variety including new categories
+        const squareVariants = ['square', 'square', 'compact', 'square', 'mini', 'square', 'hero', 'square'];
         const variant = squareVariants[index % squareVariants.length];
         return `gallery-item gallery-item-${variant}`;
       }
     } else {
-      // Balanced fallback pattern with more squares and less extreme sizes
+      // Enhanced fallback pattern with new categories and better distribution
       const balancedPatterns = [
         'gallery-item gallery-item-square',    // 0: Square (most common)
         'gallery-item gallery-item-square',    // 1: Square
@@ -167,16 +169,20 @@ const Gallery = () => {
         'gallery-item gallery-item-square',    // 3: Square
         'gallery-item gallery-item-compact',   // 4: Compact
         'gallery-item gallery-item-square',    // 5: Square
-        'gallery-item gallery-item-tall',      // 6: Tall
+        'gallery-item gallery-item-mini',      // 6: Mini (new)
         'gallery-item gallery-item-square',    // 7: Square
-        'gallery-item gallery-item-hero',      // 8: Hero (occasional)
+        'gallery-item gallery-item-tall',      // 8: Tall
         'gallery-item gallery-item-square',    // 9: Square
-        'gallery-item gallery-item-wide',      // 10: Wide
+        'gallery-item gallery-item-hero',      // 10: Hero (occasional)
         'gallery-item gallery-item-square',    // 11: Square
-        'gallery-item gallery-item-panorama',  // 12: Panorama (rare)
+        'gallery-item gallery-item-wide',      // 12: Wide
         'gallery-item gallery-item-square',    // 13: Square
-        'gallery-item gallery-item-portrait',  // 14: Portrait (rare)
+        'gallery-item gallery-item-grand',     // 14: Grand (new, rare)
         'gallery-item gallery-item-square',    // 15: Square
+        'gallery-item gallery-item-panorama',  // 16: Panorama (rare)
+        'gallery-item gallery-item-square',    // 17: Square
+        'gallery-item gallery-item-portrait',  // 18: Portrait (rare)
+        'gallery-item gallery-item-square',    // 19: Square
       ];
       
       return balancedPatterns[index % balancedPatterns.length];
