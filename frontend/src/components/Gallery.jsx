@@ -18,6 +18,7 @@ const Gallery = () => {
   const [imageAspectRatios, setImageAspectRatios] = useState({});
   const [sessionStatus, setSessionStatus] = useState('connecting');
   const [securityLevel, setSecurityLevel] = useState('maximum');
+  const [hoveredImage, setHoveredImage] = useState(null);
   const { toast } = useToast();
 
   const handleVisibilityChange = () => {
