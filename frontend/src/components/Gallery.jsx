@@ -26,6 +26,7 @@ const Gallery = () => {
   const [hasMorePages, setHasMorePages] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [pageSize] = useState(12); // Load 12 images per page
+  const [requestLock, setRequestLock] = useState(false); // Prevent multiple simultaneous requests
   
   const { toast } = useToast();
 
@@ -139,11 +140,16 @@ const Gallery = () => {
   };
   
   const loadMoreImages = async () => {
-    if (loadingMore || !hasMorePages) return;
+    // Prevent multiple simultaneous requests
+    if (loadingMore || !hasMorePages || requestLock) return;
     
     try {
       setLoadingMore(true);
+      setRequestLock(true);
       console.log('Gallery: Loading more images, page:', currentPage + 1);
+      
+      // Add delay to prevent rapid-fire requests
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       const response = await apiService.getImages(currentPage + 1, pageSize);
       console.log('Gallery: Fetched additional images response:', response);
@@ -173,13 +179,36 @@ const Gallery = () => {
       
     } catch (error) {
       console.error('Failed to load more images:', error);
-      toast({
-        title: "❌ Load Error",
-        description: error.message || "Failed to load more images.",
-        variant: "destructive",
-      });
+      
+      // Implement exponential backoff for retries
+      const isRateLimited = error.message?.includes('Too many requests') || error.status === 429;
+      
+      if (isRateLimited) {
+        toast({
+          title: "⏳ Rate Limited",
+          description: "Please wait a moment before loading more images.",
+          variant: "destructive",
+        });
+        
+        // Wait longer before allowing next request
+        setTimeout(() => {
+          setRequestLock(false);
+        }, 5000); // 5 second cooldown
+      } else {
+        toast({
+          title: "❌ Load Error",
+          description: error.message || "Failed to load more images.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoadingMore(false);
+      if (!error || !error.message?.includes('Too many requests')) {
+        // Release lock immediately if no rate limiting
+        setTimeout(() => {
+          setRequestLock(false);
+        }, 1000); // 1 second cooldown for normal requests
+      }
     }
   };
 
@@ -592,7 +621,7 @@ const Gallery = () => {
           >
             <button
               onClick={loadMoreImages}
-              disabled={loadingMore}
+              disabled={loadingMore || requestLock}
               className="group relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed transform hover:scale-105"
             >
               {/* Background glow effect */}
@@ -604,6 +633,11 @@ const Gallery = () => {
                   <>
                     <div className="w-5 h-5 border-2 border-white/30 rounded-full border-t-white animate-spin"></div>
                     <span>Loading More Images...</span>
+                  </>
+                ) : requestLock ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-yellow-300/30 rounded-full border-t-yellow-300 animate-spin"></div>
+                    <span>Please wait...</span>
                   </>
                 ) : (
                   <>
