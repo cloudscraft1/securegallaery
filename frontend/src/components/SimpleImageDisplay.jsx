@@ -112,7 +112,7 @@ const SimpleImageDisplay = ({ imageId, alt, className, style, onLoad, onError })
           setLoading(false);
           setError(false);
           
-          if (onLoad) onLoad();
+          if (onLoad) onLoad(img);
         } catch (renderError) {
           console.error('Error rendering image:', renderError);
           renderPlaceholder('Render error');
@@ -175,7 +175,16 @@ const SimpleImageDisplay = ({ imageId, alt, className, style, onLoad, onError })
         
         
         setLoading(false);
-        if (onLoad) onLoad();
+        if (onLoad) {
+          // Create a mock image object with square aspect ratio for placeholders
+          const mockImg = {
+            naturalWidth: containerWidth || 400,
+            naturalHeight: containerHeight || 400,
+            width: containerWidth || 400,
+            height: containerHeight || 400
+          };
+          onLoad(mockImg);
+        }
       } catch (placeholderError) {
         console.error('Error rendering placeholder:', placeholderError);
         setLoading(false);

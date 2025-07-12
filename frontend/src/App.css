@@ -104,45 +104,59 @@
     border: 1px solid rgba(255,255,255,0.2);
 }
 
-/* Dynamic sizing classes based on image aspect ratio */
+/* Balanced Dynamic sizing classes based on image aspect ratio */
 .gallery-item-square {
     grid-row: span 2;
     height: auto;
+    min-height: 250px;
+    max-height: 400px;
 }
 
 .gallery-item-wide {
     grid-column: span 2;
-    grid-row: span 2;
+    grid-row: span 1;
     height: auto;
+    min-height: 200px;
+    max-height: 300px;
 }
 
 .gallery-item-tall {
     grid-row: span 3;
     height: auto;
+    min-height: 350px;
+    max-height: 500px;
 }
 
 .gallery-item-panorama {
-    grid-column: span 3;
-    grid-row: span 2;
+    grid-column: span 2;
+    grid-row: span 1;
     height: auto;
+    min-height: 180px;
+    max-height: 250px;
 }
 
 .gallery-item-portrait {
-    grid-row: span 4;
+    grid-row: span 3;
     height: auto;
+    min-height: 400px;
+    max-height: 550px;
 }
 
 /* Extra large images for special showcasing */
 .gallery-item-hero {
     grid-column: span 2;
-    grid-row: span 3;
+    grid-row: span 2;
     height: auto;
+    min-height: 300px;
+    max-height: 450px;
 }
 
 /* Small compact images */
 .gallery-item-compact {
     grid-row: span 1;
     height: auto;
+    min-height: 150px;
+    max-height: 220px;
 }
 
 /* Responsive adjustments for dynamic sizing */

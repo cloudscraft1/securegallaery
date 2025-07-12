@@ -140,40 +140,46 @@ const Gallery = () => {
     const aspectRatio = imageAspectRatios[imageId];
     
     if (aspectRatio) {
-      // Use actual aspect ratio for dynamic sizing
-      if (aspectRatio > 2.5) {
+      // Use actual aspect ratio for balanced dynamic sizing
+      if (aspectRatio > 2.2) {
         return 'gallery-item gallery-item-panorama'; // Ultra-wide panoramic images
-      } else if (aspectRatio > 1.6) {
+      } else if (aspectRatio > 1.5) {
         return 'gallery-item gallery-item-wide'; // Wide landscape images
-      } else if (aspectRatio > 1.3) {
-        // Occasionally make some landscape images hero size for visual variety
-        return index % 7 === 0 ? 'gallery-item gallery-item-hero' : 'gallery-item gallery-item-wide';
-      } else if (aspectRatio < 0.4) {
+      } else if (aspectRatio > 1.2) {
+        // Mix of wide and hero for landscape images
+        return index % 8 === 0 ? 'gallery-item gallery-item-hero' : 'gallery-item gallery-item-wide';
+      } else if (aspectRatio < 0.5) {
         return 'gallery-item gallery-item-portrait'; // Very tall portrait images
-      } else if (aspectRatio < 0.75) {
+      } else if (aspectRatio < 0.8) {
         return 'gallery-item gallery-item-tall'; // Tall portrait images
       } else {
-        // Square and near-square images with some variety
-        return index % 6 === 0 ? 'gallery-item gallery-item-compact' : 'gallery-item gallery-item-square';
+        // Square and near-square images with balanced variety
+        const squareVariants = ['square', 'square', 'square', 'compact', 'square', 'hero'];
+        const variant = squareVariants[index % squareVariants.length];
+        return `gallery-item gallery-item-${variant}`;
       }
     } else {
-      // Fallback to pattern-based layout for images without aspect ratio data
-      const patterns = [
-        'gallery-item gallery-item-square',    // 0: Square
-        'gallery-item gallery-item-tall',      // 1: Tall
+      // Balanced fallback pattern with more squares and less extreme sizes
+      const balancedPatterns = [
+        'gallery-item gallery-item-square',    // 0: Square (most common)
+        'gallery-item gallery-item-square',    // 1: Square
         'gallery-item gallery-item-wide',      // 2: Wide
-        'gallery-item gallery-item-compact',   // 3: Compact
-        'gallery-item gallery-item-square',    // 4: Square
-        'gallery-item gallery-item-portrait',  // 5: Portrait
-        'gallery-item gallery-item-wide',      // 6: Wide
-        'gallery-item gallery-item-hero',      // 7: Hero (large)
-        'gallery-item gallery-item-square',    // 8: Square
-        'gallery-item gallery-item-tall',      // 9: Tall
-        'gallery-item gallery-item-panorama',  // 10: Panorama
-        'gallery-item gallery-item-compact',   // 11: Compact
+        'gallery-item gallery-item-square',    // 3: Square
+        'gallery-item gallery-item-compact',   // 4: Compact
+        'gallery-item gallery-item-square',    // 5: Square
+        'gallery-item gallery-item-tall',      // 6: Tall
+        'gallery-item gallery-item-square',    // 7: Square
+        'gallery-item gallery-item-hero',      // 8: Hero (occasional)
+        'gallery-item gallery-item-square',    // 9: Square
+        'gallery-item gallery-item-wide',      // 10: Wide
+        'gallery-item gallery-item-square',    // 11: Square
+        'gallery-item gallery-item-panorama',  // 12: Panorama (rare)
+        'gallery-item gallery-item-square',    // 13: Square
+        'gallery-item gallery-item-portrait',  // 14: Portrait (rare)
+        'gallery-item gallery-item-square',    // 15: Square
       ];
       
-      return patterns[index % patterns.length];
+      return balancedPatterns[index % balancedPatterns.length];
     }
   }, [imageAspectRatios]);
 
