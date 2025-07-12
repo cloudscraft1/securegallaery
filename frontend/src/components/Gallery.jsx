@@ -19,6 +19,14 @@ const Gallery = () => {
   const [sessionStatus, setSessionStatus] = useState('connecting');
   const [securityLevel, setSecurityLevel] = useState('maximum');
   const [hoveredImage, setHoveredImage] = useState(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [hasMorePages, setHasMorePages] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [pageSize] = useState(12); // Load 12 images per page
+  
   const { toast } = useToast();
 
   const handleVisibilityChange = () => {
@@ -73,12 +81,29 @@ const Gallery = () => {
       setSecurityLevel(apiService.getSecurityLevel());
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      // Fetch protected images
-      console.log('Gallery: Fetching protected images');
-      const fetchedImages = await apiService.getImages();
-      console.log('Gallery: Fetched images:', fetchedImages);
-      console.log('Gallery: Images count:', fetchedImages?.length || 0);
-      setImages(fetchedImages);
+      // Fetch protected images (first page only)
+      console.log('Gallery: Fetching protected images (first page)');
+      const response = await apiService.getImages(1, pageSize);
+      console.log('Gallery: Fetched images response:', response);
+      
+      if (response && response.images) {
+        setImages(response.images);
+        setCurrentPage(1);
+        setTotalPages(response.totalPages || 1);
+        setHasMorePages(response.hasMore || false);
+        console.log('Gallery: Images count:', response.images.length);
+        console.log('Gallery: Total pages:', response.totalPages);
+        console.log('Gallery: Has more pages:', response.hasMore);
+      } else {
+        // Fallback for old API response format
+        const fetchedImages = response || [];
+        setImages(fetchedImages);
+        setCurrentPage(1);
+        setTotalPages(1);
+        setHasMorePages(false);
+        console.log('Gallery: Images count (fallback):', fetchedImages.length);
+      }
+      
       await new Promise(resolve => setTimeout(resolve, 600));
       
       // Calculate remaining time to meet minimum loading duration
@@ -110,6 +135,51 @@ const Gallery = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const loadMoreImages = async () => {
+    if (loadingMore || !hasMorePages) return;
+    
+    try {
+      setLoadingMore(true);
+      console.log('Gallery: Loading more images, page:', currentPage + 1);
+      
+      const response = await apiService.getImages(currentPage + 1, pageSize);
+      console.log('Gallery: Fetched additional images response:', response);
+      
+      if (response && response.images) {
+        setImages(prev => [...prev, ...response.images]);
+        setCurrentPage(prev => prev + 1);
+        setTotalPages(response.totalPages || totalPages);
+        setHasMorePages(response.hasMore || false);
+        console.log('Gallery: Added images count:', response.images.length);
+        console.log('Gallery: Total images now:', images.length + response.images.length);
+      } else {
+        // Fallback for old API response format
+        const fetchedImages = response || [];
+        if (fetchedImages.length > 0) {
+          setImages(prev => [...prev, ...fetchedImages]);
+          setCurrentPage(prev => prev + 1);
+        }
+        setHasMorePages(false);
+      }
+      
+      toast({
+        title: "📸 More Images Loaded",
+        description: `Successfully loaded ${response?.images?.length || 0} more images.`,
+        variant: "default",
+      });
+      
+    } catch (error) {
+      console.error('Failed to load more images:', error);
+      toast({
+        title: "❌ Load Error",
+        description: error.message || "Failed to load more images.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -512,6 +582,61 @@ const Gallery = () => {
             </motion.div>
           ))}
         </motion.div>
+        
+        {/* Load More Button */}
+        {hasMorePages && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex justify-center mt-8 px-4"
+          >
+            <button
+              onClick={loadMoreImages}
+              disabled={loadingMore}
+              className="group relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed transform hover:scale-105"
+            >
+              {/* Background glow effect */}
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
+              
+              {/* Button content */}
+              <div className="relative flex items-center gap-3">
+                {loadingMore ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 rounded-full border-t-white animate-spin"></div>
+                    <span>Loading More Images...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5" />
+                    <span>Load More Images</span>
+                    <div className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                      Page {currentPage + 1} of {totalPages}
+                    </div>
+                  </>
+                )}
+              </div>
+            </button>
+          </motion.div>
+        )}
+        
+        {/* End of Gallery Message */}
+        {!hasMorePages && images.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex justify-center mt-8 px-4"
+          >
+            <div className="text-center text-blue-300/80">
+              <div className="flex items-center gap-2 justify-center mb-2">
+                <CheckCircle className="w-5 h-5" />
+                <span className="font-medium">All images loaded</span>
+              </div>
+              <div className="text-sm text-blue-400/60">
+                Showing {images.length} secure images
+              </div>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Image Modal */}

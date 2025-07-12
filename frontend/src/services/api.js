@@ -478,17 +478,17 @@ async initializeSession() {
     localStorage.removeItem('vaultsecure_expires');
   }
 
-  async getImages() {
+  async getImages(page = 1, pageSize = 20) {
     try {
-      // Check cache first to avoid multiple requests
-      const cacheKey = 'images-list';
+      // Create cache key that includes pagination
+      const cacheKey = `images-list-${page}-${pageSize}`;
       const cachedImages = this.requestCache.get(cacheKey);
       const cacheTime = this.requestCache.get(cacheKey + '-time');
       const cacheExpiry = 30000; // 30 seconds cache
       
       // Return cached data if still valid
       if (cachedImages && cacheTime && (Date.now() - cacheTime) < cacheExpiry) {
-        console.log('Returning cached images data');
+        console.log('Returning cached images data for page', page);
         return cachedImages;
       }
       
@@ -507,7 +507,7 @@ async initializeSession() {
       this.lastRequestTime = now;
       
       // Create new request promise
-      const requestPromise = this._fetchImages();
+      const requestPromise = this._fetchImages(page, pageSize);
       this.requestQueue.set(cacheKey, requestPromise);
       
       try {
@@ -528,12 +528,23 @@ async initializeSession() {
     }
   }
   
-  async _fetchImages() {
-    console.log('Fetching images from backend...');
-    const response = await this.api.get('/images');
+  async _fetchImages(page = 1, pageSize = 20) {
+    console.log(`Fetching images from backend (page ${page}, size ${pageSize})...`);
+    const response = await this.api.get('/images', {
+      params: {
+        page,
+        page_size: pageSize
+      }
+    });
     
     // Cache tokens from image URLs
-    if (response.data && Array.isArray(response.data)) {
+    if (response.data && response.data.images && Array.isArray(response.data.images)) {
+      response.data.images.forEach(image => {
+        this.cacheTokensFromUrls(image.id, image.url, image.thumbnail_url);
+      });
+      console.log(`Successfully fetched ${response.data.images.length} images`);
+    } else if (response.data && Array.isArray(response.data)) {
+      // Fallback for non-paginated response
       response.data.forEach(image => {
         this.cacheTokensFromUrls(image.id, image.url, image.thumbnail_url);
       });
