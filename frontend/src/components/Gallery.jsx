@@ -236,28 +236,52 @@ const Gallery = () => {
   }, [handleImageLoad]);
 
   const getImageClass = useCallback((imageId, index) => {
-    // Simplified consistent medium-sized layout with subtle variations
-    // All images now span 1 column and 1 row for perfect grid consistency
-    const consistentPatterns = [
-      'gallery-item gallery-item-square',    // 0: Standard square
-      'gallery-item gallery-item-square',    // 1: Standard square
-      'gallery-item gallery-item-compact',   // 2: Slightly smaller
-      'gallery-item gallery-item-square',    // 3: Standard square
-      'gallery-item gallery-item-square',    // 4: Standard square
-      'gallery-item gallery-item-wide',      // 5: Medium wide
-      'gallery-item gallery-item-square',    // 6: Standard square
-      'gallery-item gallery-item-square',    // 7: Standard square
-      'gallery-item gallery-item-tall',      // 8: Medium tall
-      'gallery-item gallery-item-square',    // 9: Standard square
-      'gallery-item gallery-item-square',    // 10: Standard square
-      'gallery-item gallery-item-hero',      // 11: Slightly larger (occasional)
-      'gallery-item gallery-item-square',    // 12: Standard square
-      'gallery-item gallery-item-square',    // 13: Standard square
-      'gallery-item gallery-item-mini',      // 14: Slightly smaller
-      'gallery-item gallery-item-square',    // 15: Standard square
-    ];
+    const aspectRatio = imageAspectRatios[imageId];
     
-    return consistentPatterns[index % consistentPatterns.length];
+    // Dynamic masonry layout with moderate sizing based on aspect ratio
+    if (aspectRatio) {
+      // Use actual aspect ratio for balanced dynamic sizing
+      if (aspectRatio > 2.0) {
+        return 'gallery-item gallery-item-panorama'; // Wide panoramic images
+      } else if (aspectRatio > 1.5) {
+        return 'gallery-item gallery-item-wide'; // Wide landscape images
+      } else if (aspectRatio > 1.2) {
+        return 'gallery-item gallery-item-hero'; // Medium landscape hero
+      } else if (aspectRatio < 0.6) {
+        return 'gallery-item gallery-item-portrait'; // Tall portrait images
+      } else if (aspectRatio < 0.8) {
+        return 'gallery-item gallery-item-tall'; // Tall images
+      } else {
+        // Square and near-square images
+        return 'gallery-item gallery-item-square';
+      }
+    } else {
+      // Balanced fallback pattern with moderate dynamic sizing
+      const dynamicPatterns = [
+        'gallery-item gallery-item-square',    // 0: Standard square (most common)
+        'gallery-item gallery-item-square',    // 1: Standard square
+        'gallery-item gallery-item-wide',      // 2: Wide (horizontal)
+        'gallery-item gallery-item-square',    // 3: Standard square
+        'gallery-item gallery-item-compact',   // 4: Compact
+        'gallery-item gallery-item-square',    // 5: Standard square
+        'gallery-item gallery-item-tall',      // 6: Tall (vertical)
+        'gallery-item gallery-item-square',    // 7: Standard square
+        'gallery-item gallery-item-square',    // 8: Standard square
+        'gallery-item gallery-item-hero',      // 9: Hero (moderate wide)
+        'gallery-item gallery-item-square',    // 10: Standard square
+        'gallery-item gallery-item-mini',      // 11: Mini
+        'gallery-item gallery-item-square',    // 12: Standard square
+        'gallery-item gallery-item-square',    // 13: Standard square
+        'gallery-item gallery-item-panorama',  // 14: Panorama (occasional)
+        'gallery-item gallery-item-square',    // 15: Standard square
+        'gallery-item gallery-item-square',    // 16: Standard square
+        'gallery-item gallery-item-portrait',  // 17: Portrait (occasional)
+        'gallery-item gallery-item-square',    // 18: Standard square
+        'gallery-item gallery-item-grand',     // 19: Grand (rare, moderate 2x2)
+      ];
+      
+      return dynamicPatterns[index % dynamicPatterns.length];
+    }
   }, [imageAspectRatios]);
 
   const handleImageLoadStart = useCallback((imageId) => {

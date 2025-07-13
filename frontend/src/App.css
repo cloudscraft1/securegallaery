@@ -104,7 +104,7 @@
     border: 1px solid rgba(255,255,255,0.2);
 }
 
-/* Consistent Medium-sized Grid Items - Perfect Balance */
+/* Dynamic Masonry Layout with Moderate Sizing - Perfect Balance */
 .gallery-item-square {
     grid-row: span 1;
     height: auto;
@@ -113,101 +113,111 @@
 }
 
 .gallery-item-wide {
-    grid-column: span 1;
+    grid-column: span 2;
     grid-row: span 1;
     height: auto;
-    min-height: 200px;
-    max-height: 260px;
+    min-height: 180px;
+    max-height: 220px;
 }
 
 .gallery-item-tall {
-    grid-row: span 1;
+    grid-row: span 2;
     height: auto;
-    min-height: 240px;
-    max-height: 300px;
+    min-height: 320px;
+    max-height: 400px;
 }
 
 .gallery-item-panorama {
-    grid-column: span 1;
+    grid-column: span 2;
     grid-row: span 1;
     height: auto;
-    min-height: 200px;
-    max-height: 260px;
+    min-height: 160px;
+    max-height: 200px;
 }
 
 .gallery-item-portrait {
-    grid-row: span 1;
+    grid-row: span 2;
     height: auto;
-    min-height: 240px;
-    max-height: 300px;
+    min-height: 340px;
+    max-height: 420px;
 }
 
-/* Medium showcase images - slightly larger for variety */
+/* Medium showcase images - moderate size increase */
 .gallery-item-hero {
-    grid-column: span 1;
+    grid-column: span 2;
     grid-row: span 1;
     height: auto;
-    min-height: 260px;
-    max-height: 320px;
+    min-height: 200px;
+    max-height: 260px;
 }
 
-/* Compact images - slightly smaller for variety */
+/* Compact images - smaller for variety */
 .gallery-item-compact {
     grid-row: span 1;
     height: auto;
-    min-height: 200px;
-    max-height: 260px;
+    min-height: 180px;
+    max-height: 220px;
 }
 
-/* Grand showcase images - medium-large for balance */
+/* Grand showcase images - moderate large for balance */
 .gallery-item-grand {
-    grid-column: span 1;
-    grid-row: span 1;
+    grid-column: span 2;
+    grid-row: span 2;
     height: auto;
-    min-height: 260px;
-    max-height: 320px;
+    min-height: 320px;
+    max-height: 400px;
 }
 
-/* Mini thumbnail images - consistent with others */
+/* Mini thumbnail images - small and neat */
 .gallery-item-mini {
     grid-row: span 1;
     height: auto;
-    min-height: 200px;
-    max-height: 260px;
+    min-height: 160px;
+    max-height: 200px;
 }
 
-/* Responsive adjustments for consistent medium sizing */
+/* Responsive adjustments for dynamic masonry layout */
 @media (max-width: 1024px) {
-    .gallery-item-square,
     .gallery-item-wide,
-    .gallery-item-tall,
     .gallery-item-panorama,
-    .gallery-item-portrait,
-    .gallery-item-hero,
-    .gallery-item-compact,
-    .gallery-item-grand,
-    .gallery-item-mini {
+    .gallery-item-hero {
         grid-column: span 1;
         grid-row: span 1;
         min-height: 200px;
-        max-height: 280px;
+        max-height: 260px;
+    }
+    
+    .gallery-item-tall,
+    .gallery-item-portrait {
+        grid-row: span 2;
+        min-height: 300px;
+        max-height: 360px;
+    }
+    
+    .gallery-item-grand {
+        grid-column: span 1;
+        grid-row: span 2;
+        min-height: 300px;
+        max-height: 380px;
     }
 }
 
 @media (max-width: 768px) {
-    .gallery-item-square,
     .gallery-item-wide,
-    .gallery-item-tall,
     .gallery-item-panorama,
-    .gallery-item-portrait,
     .gallery-item-hero,
-    .gallery-item-compact,
-    .gallery-item-grand,
-    .gallery-item-mini {
+    .gallery-item-grand {
         grid-column: span 1;
         grid-row: span 1;
         min-height: 180px;
         max-height: 240px;
+    }
+    
+    .gallery-item-tall,
+    .gallery-item-portrait {
+        grid-row: span 2;
+        min-height: 280px;
+        max-height: 340px;
     }
 }
 
