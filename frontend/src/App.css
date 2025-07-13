@@ -4,88 +4,56 @@
     overflow: hidden;
 }
 
-/* Beautiful Dynamic Masonry Layout - Pinterest Style with Fluid Columns */
+/* Pinterest-Style Masonry Layout with Dynamic Heights */
 .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    grid-auto-rows: 250px;
-    gap: 20px;
-    padding: 0 20px;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-auto-rows: 10px;
+    gap: 8px;
+    padding: 0 12px;
     width: 100%;
     max-width: 100%;
-    justify-items: center;
+    justify-items: stretch;
 }
 
-/* Responsive breakpoints for consistent medium-sized grid */
-@media (min-width: 320px) {
-    .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        grid-auto-rows: 220px;
-        gap: 15px;
-        padding: 0 15px;
-    }
-}
-
+/* Responsive breakpoints for Pinterest-style grid */
 @media (min-width: 480px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-        grid-auto-rows: 200px;
-        gap: 18px;
-        padding: 0 18px;
-    }
-}
-
-@media (min-width: 640px) {
-    .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        grid-auto-rows: 180px;
-        gap: 16px;
-        padding: 0 20px;
+        gap: 10px;
+        padding: 0 15px;
     }
 }
 
 @media (min-width: 768px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-        grid-auto-rows: 200px;
-        gap: 18px;
-        padding: 0 25px;
+        gap: 12px;
+        padding: 0 20px;
     }
 }
 
 @media (min-width: 1024px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-        grid-auto-rows: 220px;
-        gap: 20px;
-        padding: 0 30px;
+        gap: 15px;
+        padding: 0 25px;
     }
 }
 
 @media (min-width: 1280px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        grid-auto-rows: 240px;
-        gap: 22px;
-        padding: 0 35px;
+        gap: 18px;
+        padding: 0 30px;
     }
 }
 
 @media (min-width: 1536px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        grid-auto-rows: 260px;
-        gap: 25px;
-        padding: 0 40px;
-    }
-}
-
-@media (min-width: 1920px) {
-    .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        grid-auto-rows: 280px;
-        gap: 28px;
-        padding: 0 50px;
+        gap: 20px;
+        padding: 0 35px;
     }
 }
 
@@ -104,76 +72,61 @@
     border: 1px solid rgba(255,255,255,0.2);
 }
 
-/* Dynamic Masonry Layout with Moderate Sizing - Perfect Balance */
-.gallery-item-square {
-    grid-row: span 1;
-    height: auto;
-    min-height: 220px;
-    max-height: 280px;
+/* Pinterest-Style Dynamic Heights - Row Spans */
+.gallery-item-small {
+    grid-row: span 20;
 }
 
-.gallery-item-wide {
-    grid-column: span 2;
-    grid-row: span 1;
-    height: auto;
-    min-height: 180px;
-    max-height: 220px;
+.gallery-item-medium {
+    grid-row: span 25;
+}
+
+.gallery-item-large {
+    grid-row: span 30;
+}
+
+.gallery-item-xlarge {
+    grid-row: span 35;
 }
 
 .gallery-item-tall {
-    grid-row: span 2;
-    height: auto;
-    min-height: 320px;
-    max-height: 400px;
+    grid-row: span 40;
+}
+
+.gallery-item-xtall {
+    grid-row: span 45;
 }
 
 .gallery-item-panorama {
-    grid-column: span 2;
-    grid-row: span 1;
-    height: auto;
-    min-height: 160px;
-    max-height: 200px;
+    grid-row: span 18;
+}
+
+.gallery-item-wide {
+    grid-row: span 22;
+}
+
+.gallery-item-hero {
+    grid-row: span 28;
+}
+
+.gallery-item-compact {
+    grid-row: span 15;
+}
+
+.gallery-item-mini {
+    grid-row: span 12;
+}
+
+.gallery-item-square {
+    grid-row: span 25;
 }
 
 .gallery-item-portrait {
-    grid-row: span 2;
-    height: auto;
-    min-height: 340px;
-    max-height: 420px;
+    grid-row: span 38;
 }
 
-/* Medium showcase images - moderate size increase */
-.gallery-item-hero {
-    grid-column: span 2;
-    grid-row: span 1;
-    height: auto;
-    min-height: 200px;
-    max-height: 260px;
-}
-
-/* Compact images - smaller for variety */
-.gallery-item-compact {
-    grid-row: span 1;
-    height: auto;
-    min-height: 180px;
-    max-height: 220px;
-}
-
-/* Grand showcase images - moderate large for balance */
 .gallery-item-grand {
-    grid-column: span 2;
-    grid-row: span 2;
-    height: auto;
-    min-height: 320px;
-    max-height: 400px;
-}
-
-/* Mini thumbnail images - small and neat */
-.gallery-item-mini {
-    grid-row: span 1;
-    height: auto;
-    min-height: 160px;
-    max-height: 200px;
+    grid-row: span 50;
 }
 
 /* Responsive adjustments for dynamic masonry layout */

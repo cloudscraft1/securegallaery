@@ -238,49 +238,52 @@ const Gallery = () => {
   const getImageClass = useCallback((imageId, index) => {
     const aspectRatio = imageAspectRatios[imageId];
     
-    // Dynamic masonry layout with moderate sizing based on aspect ratio
+    // Pinterest-style dynamic sizing based on aspect ratio
     if (aspectRatio) {
-      // Use actual aspect ratio for balanced dynamic sizing
-      if (aspectRatio > 2.0) {
-        return 'gallery-item gallery-item-panorama'; // Wide panoramic images
-      } else if (aspectRatio > 1.5) {
-        return 'gallery-item gallery-item-wide'; // Wide landscape images
-      } else if (aspectRatio > 1.2) {
-        return 'gallery-item gallery-item-hero'; // Medium landscape hero
-      } else if (aspectRatio < 0.6) {
-        return 'gallery-item gallery-item-portrait'; // Tall portrait images
-      } else if (aspectRatio < 0.8) {
-        return 'gallery-item gallery-item-tall'; // Tall images
+      // Use actual aspect ratio for Pinterest-style dynamic sizing
+      if (aspectRatio > 2.2) {
+        return 'gallery-item gallery-item-panorama'; // Very wide panoramic
+      } else if (aspectRatio > 1.8) {
+        return 'gallery-item gallery-item-wide'; // Wide landscape
+      } else if (aspectRatio > 1.3) {
+        return 'gallery-item gallery-item-medium'; // Medium landscape
+      } else if (aspectRatio > 1.1) {
+        return 'gallery-item gallery-item-square'; // Near square
+      } else if (aspectRatio > 0.9) {
+        return 'gallery-item gallery-item-medium'; // Square-ish
+      } else if (aspectRatio > 0.7) {
+        return 'gallery-item gallery-item-large'; // Slightly tall
+      } else if (aspectRatio > 0.5) {
+        return 'gallery-item gallery-item-tall'; // Tall portrait
       } else {
-        // Square and near-square images
-        return 'gallery-item gallery-item-square';
+        return 'gallery-item gallery-item-xtall'; // Very tall portrait
       }
     } else {
-      // Balanced fallback pattern with moderate dynamic sizing
-      const dynamicPatterns = [
-        'gallery-item gallery-item-square',    // 0: Standard square (most common)
-        'gallery-item gallery-item-square',    // 1: Standard square
-        'gallery-item gallery-item-wide',      // 2: Wide (horizontal)
-        'gallery-item gallery-item-square',    // 3: Standard square
-        'gallery-item gallery-item-compact',   // 4: Compact
-        'gallery-item gallery-item-square',    // 5: Standard square
-        'gallery-item gallery-item-tall',      // 6: Tall (vertical)
-        'gallery-item gallery-item-square',    // 7: Standard square
-        'gallery-item gallery-item-square',    // 8: Standard square
-        'gallery-item gallery-item-hero',      // 9: Hero (moderate wide)
-        'gallery-item gallery-item-square',    // 10: Standard square
-        'gallery-item gallery-item-mini',      // 11: Mini
-        'gallery-item gallery-item-square',    // 12: Standard square
-        'gallery-item gallery-item-square',    // 13: Standard square
-        'gallery-item gallery-item-panorama',  // 14: Panorama (occasional)
-        'gallery-item gallery-item-square',    // 15: Standard square
-        'gallery-item gallery-item-square',    // 16: Standard square
-        'gallery-item gallery-item-portrait',  // 17: Portrait (occasional)
-        'gallery-item gallery-item-square',    // 18: Standard square
-        'gallery-item gallery-item-grand',     // 19: Grand (rare, moderate 2x2)
+      // Pinterest-style varied pattern for unknown aspect ratios
+      const pinterestPatterns = [
+        'gallery-item gallery-item-small',     // 0: Small
+        'gallery-item gallery-item-medium',    // 1: Medium
+        'gallery-item gallery-item-large',     // 2: Large
+        'gallery-item gallery-item-medium',    // 3: Medium
+        'gallery-item gallery-item-tall',      // 4: Tall
+        'gallery-item gallery-item-small',     // 5: Small
+        'gallery-item gallery-item-xlarge',    // 6: Extra large
+        'gallery-item gallery-item-compact',   // 7: Compact
+        'gallery-item gallery-item-medium',    // 8: Medium
+        'gallery-item gallery-item-hero',      // 9: Hero
+        'gallery-item gallery-item-small',     // 10: Small
+        'gallery-item gallery-item-portrait',  // 11: Portrait
+        'gallery-item gallery-item-mini',      // 12: Mini
+        'gallery-item gallery-item-wide',      // 13: Wide
+        'gallery-item gallery-item-medium',    // 14: Medium
+        'gallery-item gallery-item-xtall',     // 15: Extra tall
+        'gallery-item gallery-item-square',    // 16: Square
+        'gallery-item gallery-item-large',     // 17: Large
+        'gallery-item gallery-item-panorama',  // 18: Panorama
+        'gallery-item gallery-item-grand',     // 19: Grand
       ];
       
-      return dynamicPatterns[index % dynamicPatterns.length];
+      return pinterestPatterns[index % pinterestPatterns.length];
     }
   }, [imageAspectRatios]);
 
