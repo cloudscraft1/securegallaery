@@ -7,38 +7,38 @@
 /* Beautiful Dynamic Masonry Layout - Pinterest Style with Fluid Columns */
 .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    grid-auto-rows: 200px;
-    gap: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-auto-rows: 250px;
+    gap: 20px;
     padding: 0 20px;
     width: 100%;
     max-width: 100%;
     justify-items: center;
 }
 
-/* Responsive breakpoints for dynamic masonry */
+/* Responsive breakpoints for consistent medium-sized grid */
 @media (min-width: 320px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        grid-auto-rows: 180px;
-        gap: 12px;
+        grid-auto-rows: 220px;
+        gap: 15px;
         padding: 0 15px;
     }
 }
 
 @media (min-width: 480px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        grid-auto-rows: 160px;
-        gap: 15px;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        grid-auto-rows: 200px;
+        gap: 18px;
         padding: 0 18px;
     }
 }
 
 @media (min-width: 640px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        grid-auto-rows: 150px;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        grid-auto-rows: 180px;
         gap: 16px;
         padding: 0 20px;
     }
@@ -46,8 +46,8 @@
 
 @media (min-width: 768px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        grid-auto-rows: 160px;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        grid-auto-rows: 200px;
         gap: 18px;
         padding: 0 25px;
     }
@@ -55,8 +55,8 @@
 
 @media (min-width: 1024px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-        grid-auto-rows: 180px;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        grid-auto-rows: 220px;
         gap: 20px;
         padding: 0 30px;
     }
@@ -64,8 +64,8 @@
 
 @media (min-width: 1280px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-        grid-auto-rows: 200px;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-auto-rows: 240px;
         gap: 22px;
         padding: 0 35px;
     }
@@ -73,8 +73,8 @@
 
 @media (min-width: 1536px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        grid-auto-rows: 220px;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        grid-auto-rows: 260px;
         gap: 25px;
         padding: 0 40px;
     }
@@ -82,8 +82,8 @@
 
 @media (min-width: 1920px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        grid-auto-rows: 240px;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        grid-auto-rows: 280px;
         gap: 28px;
         padding: 0 50px;
     }
@@ -104,136 +104,127 @@
     border: 1px solid rgba(255,255,255,0.2);
 }
 
-/* Balanced Dynamic sizing classes based on image aspect ratio */
+/* Consistent Medium-sized Grid Items - Perfect Balance */
 .gallery-item-square {
-    grid-row: span 2;
+    grid-row: span 1;
     height: auto;
-    min-height: 250px;
-    max-height: 400px;
+    min-height: 220px;
+    max-height: 280px;
 }
 
 .gallery-item-wide {
-    grid-column: span 2;
+    grid-column: span 1;
     grid-row: span 1;
     height: auto;
     min-height: 200px;
-    max-height: 300px;
+    max-height: 260px;
 }
 
 .gallery-item-tall {
-    grid-row: span 3;
+    grid-row: span 1;
     height: auto;
-    min-height: 350px;
-    max-height: 500px;
+    min-height: 240px;
+    max-height: 300px;
 }
 
 .gallery-item-panorama {
-    grid-column: span 2;
+    grid-column: span 1;
     grid-row: span 1;
     height: auto;
-    min-height: 180px;
-    max-height: 250px;
+    min-height: 200px;
+    max-height: 260px;
 }
 
 .gallery-item-portrait {
-    grid-row: span 3;
+    grid-row: span 1;
     height: auto;
-    min-height: 400px;
-    max-height: 550px;
+    min-height: 240px;
+    max-height: 300px;
 }
 
-/* Extra large images for special showcasing */
+/* Medium showcase images - slightly larger for variety */
 .gallery-item-hero {
-    grid-column: span 2;
-    grid-row: span 2;
+    grid-column: span 1;
+    grid-row: span 1;
     height: auto;
-    min-height: 300px;
-    max-height: 450px;
+    min-height: 260px;
+    max-height: 320px;
 }
 
-/* Small compact images */
+/* Compact images - slightly smaller for variety */
 .gallery-item-compact {
     grid-row: span 1;
     height: auto;
-    min-height: 150px;
-    max-height: 220px;
+    min-height: 200px;
+    max-height: 260px;
 }
 
-/* Grand showcase images - very large featured images */
+/* Grand showcase images - medium-large for balance */
 .gallery-item-grand {
-    grid-column: span 3;
-    grid-row: span 3;
+    grid-column: span 1;
+    grid-row: span 1;
     height: auto;
-    min-height: 450px;
-    max-height: 650px;
+    min-height: 260px;
+    max-height: 320px;
 }
 
-/* Mini thumbnail images - small clustered images */
+/* Mini thumbnail images - consistent with others */
 .gallery-item-mini {
     grid-row: span 1;
     height: auto;
-    min-height: 120px;
-    max-height: 180px;
+    min-height: 200px;
+    max-height: 260px;
 }
 
-/* Responsive adjustments for dynamic sizing */
+/* Responsive adjustments for consistent medium sizing */
 @media (max-width: 1024px) {
-    .gallery-item-panorama {
-        grid-column: span 2;
-        grid-row: span 2;
-    }
-    
-    .gallery-item-wide {
-        grid-column: span 2;
-        grid-row: span 2;
-    }
-    
-    .gallery-item-portrait {
-        grid-row: span 3;
-    }
-    
-    .gallery-item-grand {
-        grid-column: span 2;
-        grid-row: span 3;
-        min-height: 400px;
-        max-height: 550px;
-    }
-}
-
-@media (max-width: 768px) {
-    .gallery-item-wide,
-    .gallery-item-panorama {
-        grid-column: span 1;
-        grid-row: span 2;
-    }
-    
-    .gallery-item-tall,
-    .gallery-item-portrait {
-        grid-row: span 2;
-    }
-    
-    .gallery-item-grand {
-        grid-column: span 1;
-        grid-row: span 3;
-        min-height: 350px;
-        max-height: 500px;
-    }
-}
-
-@media (max-width: 480px) {
+    .gallery-item-square,
     .gallery-item-wide,
     .gallery-item-tall,
     .gallery-item-panorama,
     .gallery-item-portrait,
     .gallery-item-hero,
-    .gallery-item-grand {
-        grid-column: span 1;
-        grid-row: span 2;
-    }
-    
+    .gallery-item-compact,
+    .gallery-item-grand,
     .gallery-item-mini {
-        min-height: 100px;
-        max-height: 150px;
+        grid-column: span 1;
+        grid-row: span 1;
+        min-height: 200px;
+        max-height: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    .gallery-item-square,
+    .gallery-item-wide,
+    .gallery-item-tall,
+    .gallery-item-panorama,
+    .gallery-item-portrait,
+    .gallery-item-hero,
+    .gallery-item-compact,
+    .gallery-item-grand,
+    .gallery-item-mini {
+        grid-column: span 1;
+        grid-row: span 1;
+        min-height: 180px;
+        max-height: 240px;
+    }
+}
+
+@media (max-width: 480px) {
+    .gallery-item-square,
+    .gallery-item-wide,
+    .gallery-item-tall,
+    .gallery-item-panorama,
+    .gallery-item-portrait,
+    .gallery-item-hero,
+    .gallery-item-compact,
+    .gallery-item-grand,
+    .gallery-item-mini {
+        grid-column: span 1;
+        grid-row: span 1;
+        min-height: 160px;
+        max-height: 220px;
     }
 }
 
