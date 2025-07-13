@@ -72,61 +72,61 @@
     border: 1px solid rgba(255,255,255,0.2);
 }
 
-/* Pinterest-Style Dynamic Heights - Compact Row Spans */
+/* Pinterest-Style Dynamic Heights - Extra Compact Row Spans */
 .gallery-item-small {
-    grid-row: span 15;
-}
-
-.gallery-item-medium {
-    grid-row: span 18;
-}
-
-.gallery-item-large {
-    grid-row: span 22;
-}
-
-.gallery-item-xlarge {
-    grid-row: span 25;
-}
-
-.gallery-item-tall {
-    grid-row: span 28;
-}
-
-.gallery-item-xtall {
-    grid-row: span 32;
-}
-
-.gallery-item-panorama {
-    grid-row: span 12;
-}
-
-.gallery-item-wide {
-    grid-row: span 16;
-}
-
-.gallery-item-hero {
-    grid-row: span 20;
-}
-
-.gallery-item-compact {
     grid-row: span 10;
 }
 
-.gallery-item-mini {
-    grid-row: span 8;
+.gallery-item-medium {
+    grid-row: span 12;
 }
 
-.gallery-item-square {
+.gallery-item-large {
+    grid-row: span 14;
+}
+
+.gallery-item-xlarge {
+    grid-row: span 16;
+}
+
+.gallery-item-tall {
     grid-row: span 18;
 }
 
+.gallery-item-xtall {
+    grid-row: span 20;
+}
+
+.gallery-item-panorama {
+    grid-row: span 8;
+}
+
+.gallery-item-wide {
+    grid-row: span 10;
+}
+
+.gallery-item-hero {
+    grid-row: span 13;
+}
+
+.gallery-item-compact {
+    grid-row: span 7;
+}
+
+.gallery-item-mini {
+    grid-row: span 5;
+}
+
+.gallery-item-square {
+    grid-row: span 12;
+}
+
 .gallery-item-portrait {
-    grid-row: span 26;
+    grid-row: span 16;
 }
 
 .gallery-item-grand {
-    grid-row: span 35;
+    grid-row: span 22;
 }
 
 /* Responsive adjustments for dynamic masonry layout */
